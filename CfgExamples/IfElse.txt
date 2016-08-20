@@ -1,0 +1,11 @@
+createNode(...)
+setNode(...)
+if(...)
+{
+	setNode(...)
+}
+else
+{
+	setNode(...)
+	skip(...)
+}

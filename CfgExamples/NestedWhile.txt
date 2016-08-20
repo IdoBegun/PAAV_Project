@@ -1,0 +1,12 @@
+createNode(...)
+setNode(...)
+createNode(...)
+while(...)
+{
+	createNode(...)
+	while(...)
+	{
+		setNode(...)
+		skip(...)
+	}
+}
