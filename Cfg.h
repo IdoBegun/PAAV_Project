@@ -1,30 +1,16 @@
 #ifndef _CFG_H
 #define _CFG_H
 
+#include "TreeNode.h"
+#include "State.h"
 #include <set>
 
 using namespace std;
 
-typedef struct TreeNode
-{
-  struct TreeNode* m_leftChild;
-  struct TreeNode* m_rightChild;
-  struct TreeNode* m_parent;
-  int m_minValue;
-  int m_maxValue;
-  bool checkValidity(int min, int max);
-}TreeNode;
-
-typedef struct
-{
-  struct TreeNode* m_root;
-  bool checkValidity();
-}State;
-
 typedef struct
 {
   string m_line;
-}Func; // TODO: change to classes with parameters
+} Func; // TODO: change to classes with parameters
 
 typedef struct CfgNode
 {

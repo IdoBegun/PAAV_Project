@@ -149,30 +149,3 @@ bool Cfg::checkValidity()
    }
    return true;
 }
-
-bool State::checkValidity()
-{
-  return m_root->checkValidity(INT_MIN, INT_MAX);
-}
-
-bool TreeNode::checkValidity(int min, int max)
-{
-  if ((min > m_minValue) || (m_minValue > m_maxValue) || (m_maxValue > max))
-  {
-    cout << "error in node:" 
-      << "minValue=" << m_minValue 
-      << ", maxValue=" << m_maxValue
-      << ", min=" << min
-      << ", max=" << max;
-    return false;
-  }
-  if ((m_leftChild != NULL) && (!m_leftChild->checkValidity(min, m_minValue)))
-  {
-    return false;
-  }
-  if ((m_rightChild != NULL) && (!m_rightChild->checkValidity(m_maxValue, max)))
-  {
-    return false;
-  }
-  return true;
-}
