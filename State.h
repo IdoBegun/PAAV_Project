@@ -30,6 +30,8 @@ public:
 
 	bool checkValidity();
 	void runCommand(string a_cmd);
+	void join(const State& a_otherState);
+	void meet(const State& a_otherState);
 private:
 	
 	TreeNode* m_root;

@@ -30,6 +30,9 @@ public:
 
 	TreeNode* findNode(string a_name);
 	bool checkValidity(int a_min, int a_max);
+
+	void join(TreeNode* a_other);
+	void meet(TreeNode* a_other);
 private:
 	string m_name;
 	TreeNode* m_parent;

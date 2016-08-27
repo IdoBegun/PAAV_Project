@@ -83,3 +83,102 @@ bool TreeNode::checkValidity(int min, int max)
 	}
 	return true;
 }
+
+void TreeNode::join(TreeNode* a_other)
+{
+	if (a_other == NULL)
+	{
+		return;
+	}
+
+	if (m_minValue > a_other->getMinValue())
+	{
+		m_minValue = a_other->getMinValue();
+	}
+
+	if (m_maxValue < a_other->getMaxValue())
+	{
+		m_maxValue = a_other->getMaxValue();
+	}
+
+	if (m_name != a_other->getName())
+	{
+		//TODO
+	}
+
+	TreeNode* otherLeft = a_other->getLeftChild();
+	if (otherLeft != NULL)
+	{
+		if (m_leftChild != NULL)
+		{
+			m_leftChild->join(otherLeft);
+			m_leftChild->setParent(this);
+		}
+		else {
+			m_leftChild = new TreeNode(*otherLeft);
+		}
+	}
+
+	TreeNode* otherRight = a_other->getRightChild();
+	if (otherRight != NULL)
+	{
+		if (m_rightChild != NULL)
+		{
+			m_rightChild->join(otherRight);
+			m_rightChild->setParent(this);
+		}
+		else {
+			m_rightChild = new TreeNode(*otherRight);
+		}
+	}
+}
+
+void TreeNode::meet(TreeNode* a_other)
+{
+	if (a_other == NULL)
+	{
+		return;
+	}
+
+	if (m_minValue < a_other->getMinValue())
+	{
+		m_minValue = a_other->getMinValue();
+	}
+
+	if (m_maxValue > a_other->getMaxValue())
+	{
+		m_maxValue = a_other->getMaxValue();
+	}
+
+	if (m_name != a_other->getName())
+	{
+		//TODO
+	}
+
+	TreeNode* otherLeft = a_other->getLeftChild();
+	if (otherLeft != NULL)
+	{
+		if (m_leftChild != NULL)
+		{
+			m_leftChild->meet(otherLeft);
+			m_leftChild->setParent(this);
+		}
+		else {
+			m_leftChild = new TreeNode(*otherLeft);
+		}
+	}
+
+	TreeNode* otherRight = a_other->getRightChild();
+	if (otherRight != NULL)
+	{
+		if (m_rightChild != NULL)
+		{
+			m_rightChild->meet(otherRight);
+			m_rightChild->setParent(this);
+		}
+		else {
+			m_rightChild = new TreeNode(*otherRight);
+		}
+	}
+}
+

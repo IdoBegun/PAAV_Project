@@ -45,3 +45,25 @@ void State::runCommand(string a_cmd)
 {
 
 }
+
+void State::join(const State& a_otherState)
+{
+	TreeNode* otherRoot = a_otherState.getRoot();
+	if ((m_root != NULL) && (otherRoot != NULL))
+	{
+		m_root->join(otherRoot);
+	}
+
+	// TODO: update variable map
+}
+
+void State::meet(const State& a_otherState)
+{
+	TreeNode* otherRoot = a_otherState.getRoot();
+	if ((m_root != NULL) && (otherRoot != NULL))
+	{
+		m_root->meet(otherRoot);
+	}
+
+	// TODO: update variable map
+}
