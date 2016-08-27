@@ -1,29 +1,28 @@
-createNode(...)
-setNode(...)
-createNode(...)
-while(...)
+createNode(1)
+setLeft(2)
+while(3)
 {
-	if (...)
+	if(4)
 	{
-		createNode(...)
-		while(...)
+		createNode(5)
+		while(6)
 		{
-			setNode(...)
-			skip(...)
+			setRight(7)
+			skip(8)
 		}
 	}
 	else
 	{
-		if (...)
+		if(9)
 		{
-			skip(...)
-			setNode(...)
+			skip(10)
+			setValue(11)
 		}
 		else
 		{
-			createNode(...)
-			skip(...)
+			createNode(12)
+			skip(13)
 		}
-		setNode(...)
+		setValue(14)
 	}
 }

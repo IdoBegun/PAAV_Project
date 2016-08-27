@@ -3,9 +3,5 @@ setValue(...)
 if(...)
 {
 	setRight(...)
-}
-else
-{
-	setLeft(...)
 	skip(...)
 }

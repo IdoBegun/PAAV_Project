@@ -1,0 +1,15 @@
+createNode(...)
+setValue(...)
+createNode(...)
+if(...)
+{
+	setLeft(...)
+	if(...)
+	{
+		setLeft(...)
+	}
+	else
+	{
+		createNode(...)
+	}
+}
