@@ -70,7 +70,7 @@ bool TreeNode::checkValidity(int min, int max)
 			<< "minValue=" << m_minValue
 			<< ", maxValue=" << m_maxValue
 			<< ", min=" << min
-			<< ", max=" << max;
+			<< ", max=" << max << endl;
 		return false;
 	}
 	if ((m_leftChild != NULL) && (!m_leftChild->checkValidity(min, m_minValue)))

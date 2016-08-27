@@ -5,26 +5,27 @@
 int main(int argc, char** argv)
 {
   char* filePath = argv[1];
-  cout << filePath;
+  cout << filePath << endl;
   filebuf fb;
   if (fb.open (filePath,ios::in))
   {
     istream infile(&fb);
-    Cfg tree(infile);
-    tree.runProgram();
-    if (tree.checkValidity())
+    Cfg graph(infile);
+    /*graph.runProgram();
+    if (graph.checkValidity())
     {
-      cout << "the program is valid";
+      cout << "the program is valid" << endl;
     }
     else
     {
-      cout << "the program can be not valid";
-    }
+      cout << "the program can be not valid" << endl;
+    }*/
+    graph.deleteCfg();
     fb.close();
   }
   else
   {
-    cout << "can't open the file: " << filePath;
+    cout << "can't open the file: " << filePath << endl;
   }
   return 0;
 }

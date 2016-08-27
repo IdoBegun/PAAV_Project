@@ -10,13 +10,13 @@
 
 Cfg::Cfg(istream& infile)
 {
-  m_tree = createCfg(infile);
+  m_graph = createCfg(infile);
 }
 
-Cfg::~Cfg()
+void Cfg::deleteCfg()
 {
-  for (set<struct CfgNode*>::iterator iter = m_tree->m_nodes.begin(); 
-    iter != m_tree->m_nodes.end();)
+  for (set<struct CfgNode*>::iterator iter = m_graph.m_nodes.begin(); 
+    iter != m_graph.m_nodes.end();)
   {
     CfgNode* currentNode = *iter;
     iter++;
@@ -24,11 +24,92 @@ Cfg::~Cfg()
   }
 }
 
-CfgTree* Cfg::createCfg(istream& infile)
+void CfgNode::addChild(CfgNode*& childToAdd)
 {
-  CfgTree* tree = new CfgTree;
+  this->m_children.insert(childToAdd);
+  childToAdd->m_parents.insert(this);
+}
+
+void CfgNode::removeChild(CfgNode*& childToRemove)
+{
+  this->m_children.erase(childToRemove);
+  childToRemove->m_parents.erase(this);
+}
+
+void CfgGraph::deleteNode(CfgNode* nodeToDelete)
+{
+  this->m_nodes.erase(nodeToDelete);
+  delete(nodeToDelete);
+}
+
+void Cfg::createRegularNode(CfgNode*& currentNode, CfgGraph& graph, string& line)
+{
+  currentNode->m_nextFunc.m_line = line;
+  CfgNode* nextNode = new CfgNode;
+  currentNode->addChild(nextNode);
+  currentNode = nextNode;
+  graph.m_leaf = currentNode;
+  graph.m_nodes.insert(currentNode);
+}
+
+void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile)
+{
+  currentNode->m_nextFunc.m_line = line;
+  CfgGraph whileGraph = createCfg(infile);
+  currentNode->addChild(whileGraph.m_root);
+  for (set<CfgNode*>::iterator leafParentIter = whileGraph.m_leaf->m_parents.begin();
+    leafParentIter != whileGraph.m_leaf->m_parents.end();)
+  {
+    CfgNode* nodeToUpdate = *leafParentIter;
+    leafParentIter++;
+    nodeToUpdate->addChild(currentNode);
+    nodeToUpdate->removeChild(whileGraph.m_leaf);
+  }
+  whileGraph.deleteNode(whileGraph.m_leaf);
+  graph.m_nodes.insert(whileGraph.m_nodes.begin(), whileGraph.m_nodes.end());
+  CfgNode* nextNode = new CfgNode; // the node after the while condition is false
+  currentNode->addChild(nextNode);
+  currentNode = nextNode;
+  graph.m_leaf = currentNode;
+  graph.m_nodes.insert(currentNode);
+}
+
+void Cfg::createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode)
+{
+  currentNode->m_nextFunc.m_line = line;
+  CfgGraph ifGraph = createCfg(infile);
+  currentNode->addChild(ifGraph.m_root);
+  currentNode->addChild(ifGraph.m_leaf);
+  ifNode = currentNode; // update in case of "else"
+  currentNode = ifGraph.m_leaf; // ifGraph.leaf = nextNode
+  graph.m_leaf = currentNode;
+  graph.m_nodes.insert(ifGraph.m_nodes.begin(), ifGraph.m_nodes.end());
+}
+
+void Cfg::createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode)
+{
+  ifNode->removeChild(currentNode);
+  CfgGraph elseGraph = createCfg(infile);
+  ifNode->addChild(elseGraph.m_root);
+  for (set<CfgNode*>::iterator leafParentIter = elseGraph.m_leaf->m_parents.begin();
+    leafParentIter != elseGraph.m_leaf->m_parents.end();)
+  {
+    CfgNode* nodeToUpdate = *leafParentIter;
+    leafParentIter++;
+    nodeToUpdate->addChild(currentNode);
+    nodeToUpdate->removeChild(elseGraph.m_leaf);
+  }
+  elseGraph.deleteNode(elseGraph.m_leaf);
+  graph.m_nodes.insert(elseGraph.m_nodes.begin(), elseGraph.m_nodes.end());
+  // currentNode is the "empty node" for the next function
+}
+
+CfgGraph Cfg::createCfg(istream& infile)
+{
+  CfgGraph graph;
   CfgNode* currentNode = new CfgNode;
-  tree->m_root = tree->m_leaf = currentNode;
+  graph.m_root = graph.m_leaf = currentNode;
+  graph.m_nodes.insert(currentNode);
   string line;
   bool scopeStarted = false;
   CfgNode* ifNode = NULL;
@@ -38,82 +119,40 @@ CfgTree* Cfg::createCfg(istream& infile)
     string currentFuncName = line.substr(0, line.find('('));
     if (currentFuncName == "createNode")
     {
-      currentNode->m_nextFunc.m_line = line;
-      CfgNode* nextNode = new CfgNode;
-      currentNode->m_children.insert(nextNode);
-      nextNode->m_parents.insert(currentNode);
-      currentNode = nextNode;
-      tree->m_leaf = currentNode;
+      createRegularNode(currentNode, graph, line);
     }
-    else if (currentFuncName == "setNode")
+    else if (currentFuncName == "setValue")
     {
-      currentNode->m_nextFunc.m_line = line;
-      CfgNode* nextNode = new CfgNode;
-      currentNode->m_children.insert(nextNode);
-      nextNode->m_parents.insert(currentNode);
-      currentNode = nextNode;
-      tree->m_leaf = currentNode;
+      createRegularNode(currentNode, graph, line);
+    }
+    else if (currentFuncName == "setRight")
+    {
+      createRegularNode(currentNode, graph, line);
+    }
+    else if (currentFuncName == "setLeft")
+    {
+      createRegularNode(currentNode, graph, line);
     }
     else if (currentFuncName == "skip")
     {
-      currentNode->m_nextFunc.m_line = line;
-      CfgNode* nextNode = new CfgNode;
-      currentNode->m_children.insert(nextNode);
-      nextNode->m_parents.insert(currentNode);
-      currentNode = nextNode;
-      tree->m_leaf = currentNode;
+      createRegularNode(currentNode, graph, line);
     }
     else if (currentFuncName == "while")
     {
-      currentNode->m_nextFunc.m_line = line;
-      CfgTree* whileTree = createCfg(infile);
-      currentNode->m_children.insert(whileTree->m_root);
-      whileTree->m_root->m_parents.insert(currentNode);
-      for (set<CfgNode*>::iterator leafParentIter = whileTree->m_leaf->m_parents.begin();
-        leafParentIter != whileTree->m_leaf->m_parents.end();
-        leafParentIter++)
-      {
-        currentNode->m_parents.insert(*leafParentIter);
-        (*leafParentIter)->m_children.insert(currentNode);
-      }
-      delete(whileTree->m_leaf);
-      whileTree->m_leaf->m_children.insert(currentNode);
-      currentNode->m_parents.insert(whileTree->m_leaf);
-      CfgNode* nextNode = new CfgNode; // the node after the while condition is false
-      currentNode->m_children.insert(nextNode);
-      nextNode->m_parents.insert(currentNode);
-      currentNode = nextNode;
-      // TODO: delete the CfgTree?
+      createWhileGraph(currentNode, graph, line, infile);
     }
     else if (currentFuncName == "if")
     {
-      currentNode->m_nextFunc.m_line = line;
-      CfgTree* ifTree = createCfg(infile);
-      currentNode->m_children.insert(ifTree->m_root);
-      ifTree->m_root->m_parents.insert(currentNode);
-      ifTree->m_leaf->m_parents.insert(currentNode);
-      currentNode->m_children.insert(ifTree->m_root);
-      currentNode->m_children.insert(ifTree->m_leaf);
-      ifNode = currentNode; // update in case of "else"
-      currentNode = ifTree->m_leaf; // ifTree->leaf = nextNode
-      // TODO: delete the CfgTree?
+      createIfGraph(currentNode, graph, line, infile, ifNode);
     }
     else if (currentFuncName == "else")
     {
-      currentNode->m_nextFunc.m_line = line;
-      currentNode->m_parents.erase(ifNode);
-      ifNode->m_children.erase(currentNode);
-      CfgTree* elseTree = createCfg(infile);
-      ifNode->m_children.insert(elseTree->m_root);
-      for (set<CfgNode*>::iterator leafParentIter = elseTree->m_leaf->m_parents.begin();
-        leafParentIter != elseTree->m_leaf->m_parents.end();
-        leafParentIter++)
+      if (ifNode==NULL)
       {
-        currentNode->m_parents.insert(*leafParentIter);
-        (*leafParentIter)->m_children.insert(currentNode);
+        cout << "else without if" << endl;
+        assert(false);
       }
-      delete(elseTree->m_leaf);
-      // TODO: delete the CfgTree?
+      createElseGraph(currentNode, graph, line, infile, ifNode);
     }
     else if (currentFuncName == "{")
     {
@@ -122,28 +161,31 @@ CfgTree* Cfg::createCfg(istream& infile)
     }
     else if (currentFuncName == "}")
     {
-      assert(scopeStarted);
-      return tree;
+      if (!scopeStarted)
+      {
+        cout << "scope has been closed but it hasn't been opened" << endl;
+        assert(false);
+      }
+      return graph;
     }
     else
     {
-      cout << "unexpected line: " << line;
+      cout << "unexpected line: " << line << endl;
       assert(false);
     }
   }
-  cout << "incorrect scoping - reached EOF";
-  return tree;
+  return graph;
 }
 
 bool Cfg::checkValidity()
 {
-   for (set<struct CfgNode*>::iterator iter = m_tree->m_nodes.begin(); 
-    iter != m_tree->m_nodes.end(); iter++)
+   for (set<struct CfgNode*>::iterator iter = m_graph.m_nodes.begin(); 
+    iter != m_graph.m_nodes.end(); iter++)
    {
      CfgNode* currentNode = *iter;
      if (!currentNode->m_state.checkValidity())
      {
-       cout << "check validity of the state failed: " << currentNode->m_nextFunc.m_line;
+       cout << "check validity of the state failed: " << currentNode->m_nextFunc.m_line << endl;
        return false;
      }
    }
