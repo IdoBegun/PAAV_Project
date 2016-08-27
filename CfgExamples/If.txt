@@ -1,7 +1,0 @@
-createNode(...)
-setNode(...)
-if(...)
-{
-	setNode(...)
-	skip(...)
-}
