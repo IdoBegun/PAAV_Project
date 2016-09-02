@@ -1,69 +1,180 @@
 #include "State.h"
 
-State::State()
+using namespace std;
+
+State::State():m_isEmpty(false)
 {
-	//TODO?
 }
 
-State::State(const State& other)
+State::State(const State& a_other)
 {
-	//TODO
+	m_isEmpty = a_other.isEmpty();
+
+	if (m_isEmpty)
+	{
+		return;
+	}
+
+	// Probably better to do outside of CTOR
+	const NodeSet& otherRootSet = a_other.getRootSet();
+
+	for (NodeSetIter iter = otherRootSet.begin(); iter != otherRootSet.end(); iter++)
+	{
+		TreeNode* node = new TreeNode(*(*iter));
+	}
+
+	buildVariableMap();
+
 }
 
 State::~State()
 {
-	//TODO
-}
-
-void State::addVariable(string a_name, TreeNode* a_node)
-{
-	VariableMapIter iter = m_variableMap.find(a_name);
-	if (iter == m_variableMap.end())
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
 	{
-		//ERROR? TBD
+		delete (*iter);
 	}
-
-	m_variableMap[a_name] = a_node;
 }
 
-void State::deleteVariable(string a_name)
-{
-	//TODO
-}
 
 bool State::checkValidity()
 {
-	return m_root->checkValidity(INT_MIN, INT_MAX);
+
+	if (m_isEmpty)
+	{
+		return false;
+	}
+
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+	{
+		TreeNode* node = *iter;
+		if (node == NULL)
+		{
+			return false;
+		}
+		if (!(node->checkValidity(INT_MIN, INT_MAX)))
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
-TreeNode* State::findNode(string a_name)
-{
-	return m_root->findNode(a_name);
-}
 
-void State::runCommand(string a_cmd)
+void State::runFunction(const Function& a_func)
 {
-
+	//TODO
 }
 
 void State::join(const State& a_otherState)
 {
-	TreeNode* otherRoot = a_otherState.getRoot();
-	if ((m_root != NULL) && (otherRoot != NULL))
+	NodePairSet commonRoots;
+	NodeSet myUniqueRoots;
+	NodeSet otherUniqueRoots;
+
+	divideTrees(a_otherState, commonRoots, myUniqueRoots, otherUniqueRoots);
+	m_rootSet.clear();
+
+	for (NodePairSetIter iter = commonRoots.begin(); iter != commonRoots.end(); iter++)
 	{
-		m_root->join(otherRoot);
+		TreeNode* myTree = iter->first;
+		TreeNode* otherTree = iter->second;
+
+		myTree->join(otherTree);
+		m_rootSet.insert(myTree);
 	}
 
-	// TODO: update variable map
+	for (NodeSetIter iter = myUniqueRoots.begin(); iter != myUniqueRoots.end(); iter++)
+	{
+		m_rootSet.insert(*iter);
+	}
+
+	for (NodeSetIter iter = otherUniqueRoots.begin(); iter != otherUniqueRoots.end(); iter++)
+	{
+		TreeNode* node = new TreeNode(*(*iter));
+		m_rootSet.insert(node);
+	}
+
+	buildVariableMap();
 }
 
-void State::meet(const State& a_otherState)
+
+void State::buildVariableMap()
 {
-	TreeNode* otherRoot = a_otherState.getRoot();
-	if ((m_root != NULL) && (otherRoot != NULL))
+	m_variableMap.clear();
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
 	{
-		m_root->meet(otherRoot);
+		addNodeNames(*iter);
 	}
 
-	// TODO: update variable map
+}
+
+void State::addNodeNames(TreeNode* a_node)
+{
+	if (a_node == NULL)
+	{
+		return;
+	}
+
+	const NameSet& nameSet = a_node->getNameSet();
+	for (NameSetIter iter = nameSet.begin(); iter != nameSet.end(); iter++)
+	{
+		addNodeName(*iter, a_node);
+	}
+
+	addNodeNames(a_node->getLeftChild());
+	addNodeNames(a_node->getRightChild());
+
+}
+
+void State::addNodeName(const string& a_name, TreeNode* a_node)
+{
+	VariableMapIter iter = m_variableMap.find(a_name);
+	if (iter == m_variableMap.end())
+	{
+		m_variableMap.insert(make_pair(a_name, NodeSet()));
+	}
+
+	m_variableMap[a_name].insert(a_node);
+}
+
+void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots)
+{
+	NodeSet otherRootSet = a_other.getRootSet(); // Copy the entire set
+	a_commonRoots.clear();
+	a_myUniqueRoots.clear();
+	a_otherUniqueRoots.clear();
+
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+	{
+		bool isUnique = true;
+		string rootName;
+		if (!((*iter)->getUniqueName(rootName)))
+		{
+			// ERROR? We assume a root has a unique name
+		}
+
+		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != m_rootSet.end(); otherIter++)
+		{
+			string otherRootName;
+			if (!((*otherIter)->getUniqueName(otherRootName)))
+			{
+				// ERROR? We assume a root has a unique name
+			}
+
+			if (rootName == otherRootName)
+			{
+				a_commonRoots.insert(make_pair((*iter), (*otherIter)));
+				otherRootSet.erase(otherIter);
+				isUnique = false;
+				break;
+			}
+		}
+
+		if (isUnique)
+		{
+			a_myUniqueRoots.insert(*iter);
+		}
+	}
+	a_otherUniqueRoots = otherRootSet;
+
 }

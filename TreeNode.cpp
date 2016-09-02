@@ -2,11 +2,15 @@
 #include "TreeNode.h"
 
 TreeNode::TreeNode(string a_name, TreeNode* a_parent, TreeNode* a_leftChild, TreeNode* a_rightChild, int a_minValue, int a_maxValue) :
-	m_name(a_name), m_parent(a_parent), m_leftChild(a_leftChild), m_rightChild(a_rightChild), m_minValue(a_minValue), m_maxValue(a_maxValue) {}
+	m_parent(a_parent), m_leftChild(a_leftChild), m_rightChild(a_rightChild), m_minValue(a_minValue), m_maxValue(a_maxValue)
+{
+	m_nameSet.insert(a_name);
+}
+
 
 TreeNode::TreeNode(const TreeNode& other)
 {
-	m_name = other.getName();
+	m_nameSet = other.getNameSet();
 	m_minValue = other.getMinValue();
 	m_maxValue = other.getMaxValue();
 
@@ -34,33 +38,6 @@ TreeNode::~TreeNode()
 	delete m_rightChild;
 }
 
-TreeNode* TreeNode::findNode(string a_name)
-{
-	if (m_name == a_name)
-	{
-		return this;
-	}
-	
-	if (m_leftChild != NULL)
-	{
-		TreeNode* result = m_leftChild->findNode(a_name);
-		if (result != NULL)
-		{
-			return result;
-		}
-	}
-
-	if (m_rightChild != NULL)
-	{
-		TreeNode* result = m_rightChild->findNode(a_name);
-		if (result != NULL)
-		{
-			return result;
-		}
-	}
-
-	return NULL;
-}
 
 bool TreeNode::checkValidity(int min, int max)
 {
@@ -84,6 +61,7 @@ bool TreeNode::checkValidity(int min, int max)
 	return true;
 }
 
+
 void TreeNode::join(TreeNode* a_other)
 {
 	if (a_other == NULL)
@@ -101,10 +79,8 @@ void TreeNode::join(TreeNode* a_other)
 		m_maxValue = a_other->getMaxValue();
 	}
 
-	if (m_name != a_other->getName())
-	{
-		//TODO
-	}
+	const NameSet& otherNameSet = a_other->getNameSet();
+	m_nameSet.insert(otherNameSet.begin(), otherNameSet.end());
 
 	TreeNode* otherLeft = a_other->getLeftChild();
 	if (otherLeft != NULL)
@@ -133,52 +109,19 @@ void TreeNode::join(TreeNode* a_other)
 	}
 }
 
-void TreeNode::meet(TreeNode* a_other)
+
+void TreeNode::addName(const string& a_name)
 {
-	if (a_other == NULL)
-	{
-		return;
-	}
-
-	if (m_minValue < a_other->getMinValue())
-	{
-		m_minValue = a_other->getMinValue();
-	}
-
-	if (m_maxValue > a_other->getMaxValue())
-	{
-		m_maxValue = a_other->getMaxValue();
-	}
-
-	if (m_name != a_other->getName())
-	{
-		//TODO
-	}
-
-	TreeNode* otherLeft = a_other->getLeftChild();
-	if (otherLeft != NULL)
-	{
-		if (m_leftChild != NULL)
-		{
-			m_leftChild->meet(otherLeft);
-			m_leftChild->setParent(this);
-		}
-		else {
-			m_leftChild = new TreeNode(*otherLeft);
-		}
-	}
-
-	TreeNode* otherRight = a_other->getRightChild();
-	if (otherRight != NULL)
-	{
-		if (m_rightChild != NULL)
-		{
-			m_rightChild->meet(otherRight);
-			m_rightChild->setParent(this);
-		}
-		else {
-			m_rightChild = new TreeNode(*otherRight);
-		}
-	}
+	m_nameSet.insert(a_name);
 }
 
+bool TreeNode::getUniqueName(string& a_name)
+{
+	if (m_nameSet.size() == 1)
+	{
+		a_name = *(m_nameSet.begin());
+		return true;
+	}
+
+	return false;
+}

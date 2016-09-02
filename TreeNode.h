@@ -2,8 +2,12 @@
 #define _TREENODE_H
 
 #include <string>
+#include <set>
 
 using namespace std;
+
+typedef set<string> NameSet;
+typedef NameSet::iterator NameSetIter;
 
 class TreeNode
 {
@@ -13,7 +17,7 @@ public:
 	~TreeNode(); // Deep DTOR
 
 	// Getters
-	string getName() const { return m_name; };
+	const NameSet& getNameSet() const { return m_nameSet; };
 	TreeNode* getParent() const { return m_parent; };
 	TreeNode* getLeftChild() const { return m_leftChild; };
 	TreeNode* getRightChild() const { return m_rightChild; };
@@ -21,20 +25,19 @@ public:
 	int getMaxValue() const { return m_maxValue; };
 
 	// Setters
-	void setName(string a_name) { m_name = a_name; };
 	void setParent(TreeNode* a_parent) { m_parent = a_parent; };
 	void setLeftChild(TreeNode* a_leftChild) { m_leftChild = a_leftChild; };
 	void setRightChild(TreeNode* a_rightChild) { m_rightChild = a_rightChild; };
 	void setMinValue(int a_minValue) { m_minValue = a_minValue; };
 	void setMaxValue(int a_maxValue) { m_maxValue = a_maxValue; };
 
-	TreeNode* findNode(string a_name);
+	void addName(const string& a_name);
+	bool getUniqueName(string& a_name);
 	bool checkValidity(int a_min, int a_max);
-
 	void join(TreeNode* a_other);
-	void meet(TreeNode* a_other);
+
 private:
-	string m_name;
+	NameSet m_nameSet;
 	TreeNode* m_parent;
 	TreeNode* m_leftChild;
 	TreeNode* m_rightChild;
