@@ -1,15 +1,24 @@
 #ifndef _FUNCTION_H
 #define _FUNCTION_H
 
+#define CREATE_NODE "createNode"
+#define SET_VALUE "setValue"
+#define SET_RIGHT "setRight"
+#define SET_LEFT "setLeft"
+
 #include <string>
 
 using namespace std;
 
 enum FunctionName {
 	e_createNode,
-	e_setLeftChild,
-	e_setRightChild,
-	e_setValue
+	e_setLeft,
+	e_setRight,
+	e_setValue,
+	e_less,
+	e_lessEqual,
+	e_greater,
+	e_greaterEqual
 };
 
 class Function

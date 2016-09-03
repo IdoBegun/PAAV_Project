@@ -60,11 +60,6 @@ bool State::checkValidity()
 }
 
 
-void State::runFunction(const Function& a_func)
-{
-	//TODO
-}
-
 void State::join(const State& a_otherState)
 {
 	NodePairSet commonRoots;
@@ -176,5 +171,205 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 		}
 	}
 	a_otherUniqueRoots = otherRootSet;
+}
 
+
+TreeNode* State::getUniqueRoot(const string& a_name)
+{
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+	{
+		string rootName;
+		if (!((*iter)->getUniqueName(rootName)))
+		{
+			// ERROR? We assume a root has a unique name
+		}
+
+		if (a_name == rootName)
+		{
+			return (*iter);
+		}
+	}
+
+	return NULL;
+}
+
+
+const NodeSet& State::getVariableNodes(const string a_name)
+{
+	VariableMapIter iter = m_variableMap.find(a_name);
+	if (iter == m_variableMap.end())
+	{
+		// ERROR?
+		return NodeSet();
+	}
+
+	return (iter->second);
+}
+
+void State::runFunction(const Function& a_func)
+{
+	if (isEmpty())
+	{
+		return;
+	}
+
+	FunctionName name = a_func.getName();
+	switch (name)
+	{
+	case e_createNode:
+		functionCreateNode(a_func.getFirstVar(), a_func.getValue());
+		break;
+	case e_setLeft:
+		functionSetLeft(a_func.getFirstVar(), a_func.getSecondVar());
+		break;
+	case e_setRight:
+		functionSetRight(a_func.getFirstVar(), a_func.getSecondVar());
+		break;
+	case e_setValue:
+		functionSetValue(a_func.getFirstVar(), a_func.getValue());
+		break;
+	case e_less:
+		functionLessEqual(a_func.getFirstVar(), a_func.getValue()-1);
+		break;
+	case e_lessEqual:
+		functionLessEqual(a_func.getFirstVar(), a_func.getValue());
+		break;
+	case e_greater:
+		functionGreaterEqual(a_func.getFirstVar(), a_func.getValue()+1);
+		break;
+	case e_greaterEqual:
+		functionGreaterEqual(a_func.getFirstVar(), a_func.getValue());
+		break;
+	}
+}
+
+
+void State::functionCreateNode(const string& a_name, int a_value)
+{
+	TreeNode* root = getUniqueRoot(a_name);
+	if (root != NULL)
+	{
+		//ERROR? Can't have 2 roots with the same name
+		return;
+	}
+
+	TreeNode* node = new TreeNode(a_name, NULL, NULL, NULL, a_value, a_value);
+	m_rootSet.insert(node);
+	addNodeName(a_name, node);
+}
+
+void State::functionSetLeft(const string& a_parent, const string& a_child)
+{
+	TreeNode* childNode = getUniqueRoot(a_child);
+	if (childNode == NULL)
+	{
+		//ERROR? Can't set a node as a child if it already has a parent
+		return;
+	}
+
+	const NodeSet& parentSet = getVariableNodes(a_parent);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		if (((*iter)->getLeftChild() != NULL))
+		{
+			(*iter)->setLeftChild(childNode);
+		}
+	}
+}
+
+void State::functionSetRight(const string& a_parent, const string& a_child)
+{
+	TreeNode* childNode = getUniqueRoot(a_child);
+	if (childNode == NULL)
+	{
+		//ERROR? Can't set a node as a child if it already has a parent
+		return;
+	}
+
+	const NodeSet& parentSet = getVariableNodes(a_parent);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		if (((*iter)->getRightChild() != NULL))
+		{
+			(*iter)->setRightChild(childNode);
+		}
+	}
+}
+
+void State::functionSetValue(const string& a_name, int a_value)
+{
+	const NodeSet& parentSet = getVariableNodes(a_name);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		(*iter)->setMaxValue(a_value);
+		(*iter)->setMinValue(a_value);
+	}
+}
+
+
+void State::functionLessEqual(const string& a_name, int a_value)
+{
+	const NodeSet& parentSet = getVariableNodes(a_name);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		if ((*iter)->getMinValue() > a_value)
+		{
+			m_isEmpty = true;
+			return;
+		}
+
+		if ((*iter)->getMaxValue() > a_value)
+		{
+			(*iter)->setMaxValue(a_value);
+		}
+	}
+}
+
+
+void State::functionGreaterEqual(const string& a_name, int a_value)
+{
+	const NodeSet& parentSet = getVariableNodes(a_name);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		if ((*iter)->getMaxValue() < a_value)
+		{
+			m_isEmpty = true;
+			return;
+		}
+
+		if ((*iter)->getMinValue() < a_value)
+		{
+			(*iter)->setMinValue(a_value);
+		}
+	}
 }

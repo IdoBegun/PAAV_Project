@@ -37,6 +37,16 @@ private:
 	void addNodeNames(TreeNode* a_node);
 	void addNodeName(const string& a_name, TreeNode* a_node);
 	void divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots);
+	TreeNode* getUniqueRoot(const string& a_name);
+	const NodeSet& getVariableNodes(const string a_name);
+
+
+	void functionCreateNode(const string& a_name, int a_value);
+	void functionSetLeft(const string& a_parent, const string& a_child);
+	void functionSetRight(const string& a_parent, const string& a_child);
+	void functionSetValue(const string& a_name, int a_value);
+	void functionLessEqual(const string& a_name, int a_value);
+	void functionGreaterEqual(const string& a_name, int a_value);
 
 	VariableMap m_variableMap;
 	NodeSet m_rootSet;
