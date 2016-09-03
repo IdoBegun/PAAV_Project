@@ -8,7 +8,93 @@ Function::Function(FunctionName a_name, const string& a_firstVar, const string& 
 
 Function::Function(const string& a_str)
 {
-	// TODO
+	// Remove all whitespaces, semicolons, right round brackets and left curly brackets
+	string func = a_str;
+	removeChar(func, ' ');
+	removeChar(func, '\t');
+	removeChar(func, ';');
+	removeChar(func, ')');
+	removeChar(func, '{');
+
+	// Replace all left brackets with comas
+	replaceChar(func, '(', ',');
+
+	vector<string> funcElements = splitByDelim(func, ',');
+	string& name = funcElements[0];
+
+	if (name == CREATE_NODE)
+	{
+		m_name = e_createNode;
+		m_firstVar = funcElements[1];
+		m_secondVar = funcElements[2];
+		m_value = 0;
+	}
+	else if (name == SET_LEFT)
+	{
+		m_name = e_createNode;
+		m_firstVar = funcElements[1];
+		m_secondVar = funcElements[2];
+		m_value = 0;
+	}
+	else if (name == SET_RIGHT)
+	{
+		m_name = e_createNode;
+		m_firstVar = funcElements[1];
+		m_secondVar = funcElements[2];
+		m_value = 0;
+	}
+	else if (name == SET_VALUE)
+	{
+		m_name = e_setValue;
+		m_firstVar = funcElements[1];
+		m_value = stoi(funcElements[2]);
+		m_secondVar = "";
+	}
+	else if (name == IF)
+	{
+		string& exp = funcElements[1];
+		size_t pos = exp.find(GREATER_EQUAL);
+		if (pos != string::npos)
+		{
+			m_name = e_greaterEqual;
+			m_firstVar = exp.substr(0, pos);
+			m_value = stoi(exp.substr(pos + 2, string::npos));
+			m_secondVar = "";
+		}
+		else
+		{
+			pos = exp.find(GREATER);
+			if (pos != string::npos)
+			{
+				m_name = e_greater;
+				m_firstVar = exp.substr(0, pos);
+				m_value = stoi(exp.substr(pos + 1, string::npos));
+				m_secondVar = "";
+			}
+			else
+			{
+				pos = exp.find(LESS_EQUAL);
+				if (pos != string::npos)
+				{
+					m_name = e_lessEqual;
+					m_firstVar = exp.substr(0, pos);
+					m_value = stoi(exp.substr(pos + 2, string::npos));
+					m_secondVar = "";
+				}
+				else
+				{
+					pos = exp.find(LESS);
+					if (pos != string::npos)
+					{
+						m_name = e_less;
+						m_firstVar = exp.substr(0, pos);
+						m_value = stoi(exp.substr(pos + 1, string::npos));
+						m_secondVar = "";
+					}
+				}
+			}
+		}
+	}
 }
 
 

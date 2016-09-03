@@ -5,6 +5,11 @@
 #define SET_VALUE "setValue"
 #define SET_RIGHT "setRight"
 #define SET_LEFT "setLeft"
+#define IF "if"
+#define GREATER_EQUAL ">="
+#define GREATER ">"
+#define LESS_EQUAL "<="
+#define LESS "<"
 
 #include <string>
 

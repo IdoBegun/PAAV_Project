@@ -35,12 +35,3 @@ vector<string> splitByDelim(string& a_str, char a_delim)
 
 	return result;
 }
-
-
-vector<string> funcToElements(string a_str)
-{
-	removeChar(a_str, ';');
-	removeChar(a_str, ')');
-	replaceChar(a_str, '(', ',');
-	return splitByDelim(a_str, ',');
-}
