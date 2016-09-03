@@ -6,10 +6,13 @@
 #define SET_RIGHT "setRight"
 #define SET_LEFT "setLeft"
 #define IF "if"
+#define WHILE "while"
 #define GREATER_EQUAL ">="
 #define GREATER ">"
 #define LESS_EQUAL "<="
 #define LESS "<"
+#define PLUS "+"
+#define MINUS "-"
 
 #include <string>
 

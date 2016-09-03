@@ -26,8 +26,8 @@ Function::Function(const string& a_str)
 	{
 		m_name = e_createNode;
 		m_firstVar = funcElements[1];
-		m_secondVar = funcElements[2];
-		m_value = 0;
+		m_value = stoi(funcElements[2]);
+		m_secondVar = "";
 	}
 	else if (name == SET_LEFT)
 	{
@@ -45,12 +45,43 @@ Function::Function(const string& a_str)
 	}
 	else if (name == SET_VALUE)
 	{
-		m_name = e_setValue;
 		m_firstVar = funcElements[1];
-		m_value = stoi(funcElements[2]);
 		m_secondVar = "";
+
+		string& exp = funcElements[1];
+		size_t pos = exp.find(PLUS);
+
+		if (pos != string::npos)
+		{
+			m_name = e_increment;
+			string var = m_firstVar = exp.substr(0, pos);
+			if (var != m_firstVar)
+			{
+				//ERROR?
+			}
+			m_value = stoi(exp.substr(pos + 1, string::npos));
+		}
+		else
+		{
+			pos = exp.find(MINUS);
+			if (pos != string::npos)
+			{
+				m_name = e_decrement;
+				string var = m_firstVar = exp.substr(0, pos);
+				if (var != m_firstVar)
+				{
+					//ERROR?
+				}
+				m_value = stoi(exp.substr(pos + 1, string::npos));
+			}
+			else
+			{
+				m_name = e_setValue;
+				m_value = stoi(funcElements[2]);
+			}
+		}
 	}
-	else if (name == IF)
+	else if ((name == IF) || (name == WHILE))
 	{
 		string& exp = funcElements[1];
 		size_t pos = exp.find(GREATER_EQUAL);
