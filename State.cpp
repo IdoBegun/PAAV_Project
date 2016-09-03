@@ -2,15 +2,16 @@
 
 using namespace std;
 
-State::State():m_isEmpty(false)
+State::State():m_isTop(false)
 {
 }
 
+
 State::State(const State& a_other)
 {
-	m_isEmpty = a_other.isEmpty();
+	m_isTop = a_other.isTop();
 
-	if (m_isEmpty)
+	if (m_isTop)
 	{
 		return;
 	}
@@ -27,6 +28,7 @@ State::State(const State& a_other)
 
 }
 
+
 State::~State()
 {
 	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
@@ -39,7 +41,7 @@ State::~State()
 bool State::checkValidity()
 {
 
-	if (m_isEmpty)
+	if (m_isTop)
 	{
 		return false;
 	}
@@ -103,6 +105,7 @@ void State::buildVariableMap()
 
 }
 
+
 void State::addNodeNames(TreeNode* a_node)
 {
 	if (a_node == NULL)
@@ -121,6 +124,7 @@ void State::addNodeNames(TreeNode* a_node)
 
 }
 
+
 void State::addNodeName(const string& a_name, TreeNode* a_node)
 {
 	VariableMapIter iter = m_variableMap.find(a_name);
@@ -131,6 +135,7 @@ void State::addNodeName(const string& a_name, TreeNode* a_node)
 
 	m_variableMap[a_name].insert(a_node);
 }
+
 
 void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots)
 {
@@ -206,9 +211,10 @@ const NodeSet& State::getVariableNodes(const string a_name)
 	return (iter->second);
 }
 
+
 void State::runFunction(const Function& a_func)
 {
-	if (isEmpty())
+	if (isTop())
 	{
 		return;
 	}
@@ -240,6 +246,12 @@ void State::runFunction(const Function& a_func)
 	case e_greaterEqual:
 		functionGreaterEqual(a_func.getFirstVar(), a_func.getValue());
 		break;
+	case e_increment:
+		functionIncrement(a_func.getFirstVar(), a_func.getValue());
+		break;
+	case e_decrement:
+		functionIncrement(a_func.getFirstVar(), -1 * a_func.getValue());
+		break;
 	}
 }
 
@@ -249,7 +261,17 @@ void State::functionCreateNode(const string& a_name, int a_value)
 	TreeNode* root = getUniqueRoot(a_name);
 	if (root != NULL)
 	{
-		//ERROR? Can't have 2 roots with the same name
+		int minVal = root->getMinValue();
+		int maxVal = root->getMaxValue();
+		if (a_value < minVal)
+		{
+			root->setMinValue(a_value);
+		}
+
+		if (a_value > maxVal)
+		{
+			root->setMaxValue(a_value);
+		}
 		return;
 	}
 
@@ -257,6 +279,7 @@ void State::functionCreateNode(const string& a_name, int a_value)
 	m_rootSet.insert(node);
 	addNodeName(a_name, node);
 }
+
 
 void State::functionSetLeft(const string& a_parent, const string& a_child)
 {
@@ -276,12 +299,24 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 			continue;
 		}
 
-		if (((*iter)->getLeftChild() != NULL))
+		TreeNode* leftChild = (*iter)->getLeftChild();
+		if (leftChild == NULL)
 		{
-			(*iter)->setLeftChild(childNode);
+			TreeNode* node = new TreeNode(*childNode);
+			node->setParent(*iter);
+			(*iter)->setLeftChild(node);
+		}
+		else {
+			leftChild->join(childNode);
 		}
 	}
+
+	m_rootSet.erase(childNode);
+	delete childNode;
+
+	buildVariableMap();
 }
+
 
 void State::functionSetRight(const string& a_parent, const string& a_child)
 {
@@ -301,12 +336,24 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 			continue;
 		}
 
-		if (((*iter)->getRightChild() != NULL))
+		TreeNode* rightChild = (*iter)->getRightChild();
+		if (rightChild == NULL)
 		{
-			(*iter)->setRightChild(childNode);
+			TreeNode* node = new TreeNode(*childNode);
+			node->setParent(*iter);
+			(*iter)->setRightChild(node);
+		}
+		else {
+			rightChild->join(childNode);
 		}
 	}
+
+	m_rootSet.erase(childNode);
+	delete childNode;
+
+	buildVariableMap();
 }
+
 
 void State::functionSetValue(const string& a_name, int a_value)
 {
@@ -338,7 +385,7 @@ void State::functionLessEqual(const string& a_name, int a_value)
 
 		if ((*iter)->getMinValue() > a_value)
 		{
-			m_isEmpty = true;
+			m_isTop = true;
 			return;
 		}
 
@@ -363,7 +410,7 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 
 		if ((*iter)->getMaxValue() < a_value)
 		{
-			m_isEmpty = true;
+			m_isTop = true;
 			return;
 		}
 
@@ -371,5 +418,24 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 		{
 			(*iter)->setMinValue(a_value);
 		}
+	}
+}
+
+
+void State::functionIncrement(const string& a_name, int a_value)
+{
+	const NodeSet& parentSet = getVariableNodes(a_name);
+	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	{
+		if ((*iter) == NULL)
+		{
+			// ERROR?
+			continue;
+		}
+
+		int maxValue = (*iter)->getMaxValue();
+		int minValue = (*iter)->getMinValue();
+		(*iter)->setMaxValue(maxValue + a_value);
+		(*iter)->setMinValue(minValue + a_value);
 	}
 }

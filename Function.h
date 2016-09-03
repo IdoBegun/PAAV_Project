@@ -18,12 +18,15 @@ enum FunctionName {
 	e_less,
 	e_lessEqual,
 	e_greater,
-	e_greaterEqual
+	e_greaterEqual,
+	e_increment,
+	e_decrement
 };
 
 class Function
 {
 public:
+	Function(FunctionName a_name, const string& a_firstVar, const string& a_secondVar, int a_value);
 	Function(const string& a_str);
 	// Default DTOR
 
@@ -32,6 +35,10 @@ public:
 	const string& getFirstVar() const { return m_firstVar; };
 	const string& getSecondVar() const { return m_secondVar; };
 	int getValue() const { return m_value; };
+	bool isConditional();
+	
+	// Only relevant for conditional functions
+	Function invertFunction();
 
 private:
 	FunctionName m_name;

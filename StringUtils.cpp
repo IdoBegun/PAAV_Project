@@ -16,10 +16,12 @@ void removeChar(string& a_str, char a_char)
 	a_str.erase(remove(a_str.begin(), a_str.end(), a_char), a_str.end());
 }
 
+
 void replaceChar(string& a_str, char a_charOld, char a_charNew)
 {
 	replace(a_str.begin(), a_str.end(), a_charOld, a_charNew);
 }
+
 
 vector<string> splitByDelim(string& a_str, char a_delim)
 {
@@ -33,6 +35,7 @@ vector<string> splitByDelim(string& a_str, char a_delim)
 
 	return result;
 }
+
 
 vector<string> funcToElements(string a_str)
 {

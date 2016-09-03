@@ -32,6 +32,7 @@ TreeNode::TreeNode(const TreeNode& other)
 	}
 }
 
+
 TreeNode::~TreeNode()
 {
 	delete m_leftChild;
@@ -114,6 +115,7 @@ void TreeNode::addName(const string& a_name)
 {
 	m_nameSet.insert(a_name);
 }
+
 
 bool TreeNode::getUniqueName(string& a_name)
 {

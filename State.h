@@ -26,7 +26,7 @@ public:
 	// Getters
 	const VariableMap& getVariableMap() const { return m_variableMap; };
 	const NodeSet& getRootSet() const { return m_rootSet; };
-	bool isEmpty() const { return m_isEmpty; };
+	bool isTop() const { return m_isTop; };
 
 	bool checkValidity();
 	void runFunction(const Function& a_func);
@@ -47,10 +47,11 @@ private:
 	void functionSetValue(const string& a_name, int a_value);
 	void functionLessEqual(const string& a_name, int a_value);
 	void functionGreaterEqual(const string& a_name, int a_value);
+	void functionIncrement(const string& a_name, int a_value);
 
 	VariableMap m_variableMap;
 	NodeSet m_rootSet;
-	bool m_isEmpty;
+	bool m_isTop;
 };
 
 #endif _STATE_H
