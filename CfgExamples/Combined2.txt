@@ -8,7 +8,7 @@ while(3)
 		while(6)
 		{
 			setRight(7)
-			skip(8)
+			setRight(8)
 		}
 	}
 	while(9)

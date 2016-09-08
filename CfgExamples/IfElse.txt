@@ -1,11 +1,11 @@
-createNode(...)
-setValue(...)
-if(...)
+createNode(1)
+setValue(2)
+if(3)
 {
-	setRight(...)
+	setRight(4)
 }
 else
 {
-	setLeft(...)
-	skip(...)
+	setLeft(5)
+	setLeft(6)
 }

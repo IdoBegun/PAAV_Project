@@ -1,15 +1,15 @@
-createNode(...)
-setValue(...)
-createNode(...)
-if(...)
+createNode(1)
+setValue(2)
+createNode(3)
+if(4)
 {
-	setLeft(...)
-	if(...)
+	setLeft(5)
+	if(6)
 	{
-		setLeft(...)
+		setLeft(7)
 	}
 	else
 	{
-		createNode(...)
+		createNode(8)
 	}
 }

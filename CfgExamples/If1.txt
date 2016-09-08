@@ -1,8 +1,8 @@
-createNode(...)
-setValue(...)
-if(...)
+createNode(1)
+setValue(2)
+if(3)
 {
-	setRight(...)
-	skip(...)
+	setRight(4)
+	setRight(5)
 }
-setLeft(...)
+setLeft(6)

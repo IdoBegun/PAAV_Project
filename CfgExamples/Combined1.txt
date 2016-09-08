@@ -8,20 +8,20 @@ while(3)
 		while(6)
 		{
 			setRight(7)
-			skip(8)
+			setRight(8)
 		}
 	}
 	else
 	{
 		if(9)
 		{
-			skip(10)
+			setValue(10)
 			setValue(11)
 		}
 		else
 		{
 			createNode(12)
-			skip(13)
+			createNode(13)
 		}
 		setValue(14)
 	}

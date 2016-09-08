@@ -1,20 +1,20 @@
-createNode(...)
-setValue(...)
-createNode(...)
-if(...)
+createNode(1)
+setValue(2)
+createNode(3)
+if(4)
 {
-	if(...)
+	if(5)
 	{
-		setLeft(...)
+		setLeft(6)
 	}
 	else
 	{
-		createNode(...)
+		createNode(7)
 	}
-	setLeft(...)
+	setLeft(8)
 }
 else
 {
-	setValue(...)
+	setValue(9)
 }
-setRight(...)
+setRight(10)

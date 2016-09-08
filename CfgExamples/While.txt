@@ -1,7 +1,7 @@
-createNode(...)
-setRight(...)
-while(...)
+createNode(1)
+setRight(2)
+while(3)
 {
-	setLeft(...)
-	skip(...)
+	setLeft(4)
+	setValue(5)
 }
