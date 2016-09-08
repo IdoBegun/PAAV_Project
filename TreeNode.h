@@ -8,6 +8,7 @@ using namespace std;
 
 typedef set<string> NameSet;
 typedef NameSet::iterator NameSetIter;
+typedef NameSet::const_iterator NameSetConstIter;
 
 class TreeNode
 {
@@ -46,4 +47,4 @@ private:
 };
 
 
-#endif _TREENODE_H
+#endif

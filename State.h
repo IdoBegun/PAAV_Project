@@ -11,6 +11,7 @@ using namespace std;
 
 typedef set<TreeNode*> NodeSet;
 typedef NodeSet::iterator NodeSetIter;
+typedef NodeSet::const_iterator NodeSetConstIter;
 typedef map<string, NodeSet> VariableMap;
 typedef VariableMap::iterator VariableMapIter;
 typedef set<pair<TreeNode*, TreeNode*>> NodePairSet;
@@ -54,4 +55,4 @@ private:
 	bool m_isTop;
 };
 
-#endif _STATE_H
+#endif

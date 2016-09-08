@@ -1,10 +1,15 @@
+#include <iostream>
+#include <assert.h>
 #include "Function.h"
 #include "StringUtils.h"
+
+Function::Function() :
+	m_name(e_noneFunc)
+{}
 
 Function::Function(FunctionName a_name, const string& a_firstVar, const string& a_secondVar, int a_value):
 	m_name(a_name), m_firstVar(a_firstVar), m_secondVar(a_secondVar), m_value(a_value)
 {}
-
 
 Function::Function(const string& a_str)
 {
@@ -31,14 +36,14 @@ Function::Function(const string& a_str)
 	}
 	else if (name == SET_LEFT)
 	{
-		m_name = e_createNode;
+    m_name = e_setLeft;
 		m_firstVar = funcElements[1];
 		m_secondVar = funcElements[2];
 		m_value = 0;
 	}
 	else if (name == SET_RIGHT)
 	{
-		m_name = e_createNode;
+		m_name = e_setRight;
 		m_firstVar = funcElements[1];
 		m_secondVar = funcElements[2];
 		m_value = 0;
@@ -57,7 +62,8 @@ Function::Function(const string& a_str)
 			string var = m_firstVar = exp.substr(0, pos);
 			if (var != m_firstVar)
 			{
-				//ERROR?
+        cout << "Function ctor - parsing problem1" << endl;
+        assert(false);
 			}
 			m_value = stoi(exp.substr(pos + 1, string::npos));
 		}
@@ -70,7 +76,8 @@ Function::Function(const string& a_str)
 				string var = m_firstVar = exp.substr(0, pos);
 				if (var != m_firstVar)
 				{
-					//ERROR?
+          cout << "Function ctor - parsing problem2" << endl;
+          assert(false);
 				}
 				m_value = stoi(exp.substr(pos + 1, string::npos));
 			}
@@ -148,8 +155,8 @@ Function Function::invertFunction()
 {
 	if (!isConditional())
 	{
-		// ERROR?
-		return (*this);
+    cout << "Function::invertFunction - not conditional" << endl;
+    assert(false); // maybe just return (*this);
 	}
 
 	switch (m_name)
@@ -163,7 +170,8 @@ Function Function::invertFunction()
 	case(e_greaterEqual):
 		return Function(e_less, m_firstVar, m_secondVar, m_value);
 	default:
-		// ERROR?
-		return (*this);
+    cout << "Function::invertFunction - got to default case - " << m_name << endl;
+    assert(false); // maybe just return (*this);	
 	}
+  return (*this); // in case we remove the assert - get here
 }

@@ -1,3 +1,5 @@
+#include <iostream>
+#include <assert.h>
 #include "State.h"
 
 using namespace std;
@@ -19,7 +21,7 @@ State::State(const State& a_other)
 	// Probably better to do outside of CTOR
 	const NodeSet& otherRootSet = a_other.getRootSet();
 
-	for (NodeSetIter iter = otherRootSet.begin(); iter != otherRootSet.end(); iter++)
+	for (NodeSetConstIter iter = otherRootSet.begin(); iter != otherRootSet.end(); iter++)
 	{
 		TreeNode* node = new TreeNode(*(*iter));
 	}
@@ -114,7 +116,7 @@ void State::addNodeNames(TreeNode* a_node)
 	}
 
 	const NameSet& nameSet = a_node->getNameSet();
-	for (NameSetIter iter = nameSet.begin(); iter != nameSet.end(); iter++)
+	for (NameSetConstIter iter = nameSet.begin(); iter != nameSet.end(); iter++)
 	{
 		addNodeName(*iter, a_node);
 	}
@@ -150,7 +152,8 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-			// ERROR? We assume a root has a unique name
+      cout << "State::divideTrees - We assume a root has a unique name1" << endl;
+      assert(false);
 		}
 
 		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != m_rootSet.end(); otherIter++)
@@ -158,7 +161,8 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 			string otherRootName;
 			if (!((*otherIter)->getUniqueName(otherRootName)))
 			{
-				// ERROR? We assume a root has a unique name
+        cout << "State::divideTrees - We assume a root has a unique name2" << endl;
+        assert(false);
 			}
 
 			if (rootName == otherRootName)
@@ -186,7 +190,8 @@ TreeNode* State::getUniqueRoot(const string& a_name)
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-			// ERROR? We assume a root has a unique name
+      cout << "State::getUniqueRoot - We assume a root has a unique name2" << endl;
+      assert(false);
 		}
 
 		if (a_name == rootName)
@@ -204,8 +209,8 @@ const NodeSet& State::getVariableNodes(const string a_name)
 	VariableMapIter iter = m_variableMap.find(a_name);
 	if (iter == m_variableMap.end())
 	{
-		// ERROR?
-		return NodeSet();
+    cout << "State::getVariableNodes - name wasn't found" << endl;
+		assert(false);
 	}
 
 	return (iter->second);
@@ -286,17 +291,17 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 	TreeNode* childNode = getUniqueRoot(a_child);
 	if (childNode == NULL)
 	{
-		//ERROR? Can't set a node as a child if it already has a parent
-		return;
+                cout << "State::functionSetLeft - Can't set a node as a child if it already has a parent" << endl;
+                assert(false);
 	}
 
 	const NodeSet& parentSet = getVariableNodes(a_parent);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+			cout << "State::functionSetLeft - iterator is null" << endl;
+      assert(false); // maybe just continue?
 		}
 
 		TreeNode* leftChild = (*iter)->getLeftChild();
@@ -323,17 +328,17 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 	TreeNode* childNode = getUniqueRoot(a_child);
 	if (childNode == NULL)
 	{
-		//ERROR? Can't set a node as a child if it already has a parent
-		return;
+    cout << "State::functionSetRight - Can't set a node as a child if it already has a parent" << endl;
+		assert(false);
 	}
 
 	const NodeSet& parentSet = getVariableNodes(a_parent);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+      cout << "State::functionSetRight - iterator is null" << endl;
+      assert(false); // maybe just continue?
 		}
 
 		TreeNode* rightChild = (*iter)->getRightChild();
@@ -343,7 +348,8 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 			node->setParent(*iter);
 			(*iter)->setRightChild(node);
 		}
-		else {
+		else
+    {
 			rightChild->join(childNode);
 		}
 	}
@@ -358,12 +364,12 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 void State::functionSetValue(const string& a_name, int a_value)
 {
 	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+      cout << "State::functionSetValue - iterator is null" << endl;
+      assert(false); // maybe just continue
 		}
 
 		(*iter)->setMaxValue(a_value);
@@ -375,12 +381,12 @@ void State::functionSetValue(const string& a_name, int a_value)
 void State::functionLessEqual(const string& a_name, int a_value)
 {
 	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+      cout << "State::functionLessEqual - iterator is null" << endl;
+      assert(false); // maybe just continue
 		}
 
 		if ((*iter)->getMinValue() > a_value)
@@ -400,12 +406,12 @@ void State::functionLessEqual(const string& a_name, int a_value)
 void State::functionGreaterEqual(const string& a_name, int a_value)
 {
 	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+			cout << "State::functionGreaterEqual - iterator is null" << endl;
+      assert(false); // maybe just continue
 		}
 
 		if ((*iter)->getMaxValue() < a_value)
@@ -425,12 +431,12 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 void State::functionIncrement(const string& a_name, int a_value)
 {
 	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			// ERROR?
-			continue;
+			cout << "State::functionIncrement - iterator is null" << endl;
+      assert(false); // maybe just continue
 		}
 
 		int maxValue = (*iter)->getMaxValue();

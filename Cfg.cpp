@@ -44,7 +44,8 @@ void CfgGraph::deleteNode(CfgNode* nodeToDelete)
 
 void Cfg::createRegularNode(CfgNode*& currentNode, CfgGraph& graph, string& line)
 {
-  currentNode->m_nextFunc.m_line = line;
+  currentNode->type = e_regular;
+  currentNode->m_nextFunc = Function(line);
   CfgNode* nextNode = new CfgNode;
   currentNode->addChild(nextNode);
   currentNode = nextNode;
@@ -52,23 +53,39 @@ void Cfg::createRegularNode(CfgNode*& currentNode, CfgGraph& graph, string& line
   graph.m_nodes.insert(currentNode);
 }
 
-void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile)
+void Cfg::updateLeafNode(CfgGraph& graph, CfgGraph& graphToUpdate, CfgNode*& currentNode)
 {
-  currentNode->m_nextFunc.m_line = line;
-  CfgGraph whileGraph = createCfg(infile);
-  currentNode->addChild(whileGraph.m_root);
-  for (set<CfgNode*>::iterator leafParentIter = whileGraph.m_leaf->m_parents.begin();
-    leafParentIter != whileGraph.m_leaf->m_parents.end();)
+  for (set<CfgNode*>::iterator leafParentIter = graphToUpdate.m_leaf->m_parents.begin();
+    leafParentIter != graphToUpdate.m_leaf->m_parents.end();)
   {
     CfgNode* nodeToUpdate = *leafParentIter;
     leafParentIter++;
     nodeToUpdate->addChild(currentNode);
-    nodeToUpdate->removeChild(whileGraph.m_leaf);
+    nodeToUpdate->removeChild(graphToUpdate.m_leaf);
+    if (nodeToUpdate->m_trueChild == graphToUpdate.m_leaf)
+    {
+      nodeToUpdate->m_trueChild = currentNode;
+    }
+    if (nodeToUpdate->m_falseChild == graphToUpdate.m_leaf)
+    {
+      nodeToUpdate->m_falseChild = currentNode;
+    }
   }
-  whileGraph.deleteNode(whileGraph.m_leaf);
-  graph.m_nodes.insert(whileGraph.m_nodes.begin(), whileGraph.m_nodes.end());
+  graphToUpdate.deleteNode(graphToUpdate.m_leaf);
+  graph.m_nodes.insert(graphToUpdate.m_nodes.begin(), graphToUpdate.m_nodes.end());
+}
+
+void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile)
+{
+  currentNode->type = e_while;
+  currentNode->m_nextFunc = Function(line);
+  CfgGraph whileGraph = createCfg(infile);
+  currentNode->addChild(whileGraph.m_root);
+  currentNode->m_trueChild = whileGraph.m_root;
+  updateLeafNode(graph, whileGraph, currentNode);
   CfgNode* nextNode = new CfgNode; // the node after the while condition is false
   currentNode->addChild(nextNode);
+  currentNode->m_falseChild = nextNode;
   currentNode = nextNode;
   graph.m_leaf = currentNode;
   graph.m_nodes.insert(currentNode);
@@ -76,10 +93,13 @@ void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line,
 
 void Cfg::createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode)
 {
-  currentNode->m_nextFunc.m_line = line;
+  currentNode->type = e_if;
+  currentNode->m_nextFunc = Function(line);
   CfgGraph ifGraph = createCfg(infile);
   currentNode->addChild(ifGraph.m_root);
+  currentNode->m_trueChild = ifGraph.m_root;
   currentNode->addChild(ifGraph.m_leaf);
+  currentNode->m_falseChild = ifGraph.m_leaf;
   ifNode = currentNode; // update in case of "else"
   currentNode = ifGraph.m_leaf; // ifGraph.leaf = nextNode
   graph.m_leaf = currentNode;
@@ -91,16 +111,8 @@ void Cfg::createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, 
   ifNode->removeChild(currentNode);
   CfgGraph elseGraph = createCfg(infile);
   ifNode->addChild(elseGraph.m_root);
-  for (set<CfgNode*>::iterator leafParentIter = elseGraph.m_leaf->m_parents.begin();
-    leafParentIter != elseGraph.m_leaf->m_parents.end();)
-  {
-    CfgNode* nodeToUpdate = *leafParentIter;
-    leafParentIter++;
-    nodeToUpdate->addChild(currentNode);
-    nodeToUpdate->removeChild(elseGraph.m_leaf);
-  }
-  elseGraph.deleteNode(elseGraph.m_leaf);
-  graph.m_nodes.insert(elseGraph.m_nodes.begin(), elseGraph.m_nodes.end());
+  ifNode->m_falseChild = elseGraph.m_root;
+  updateLeafNode(graph, elseGraph, currentNode);
   // currentNode is the "empty node" for the next function
 }
 
@@ -130,10 +142,6 @@ CfgGraph Cfg::createCfg(istream& infile)
       createRegularNode(currentNode, graph, line);
     }
     else if (currentFuncName == "setLeft")
-    {
-      createRegularNode(currentNode, graph, line);
-    }
-    else if (currentFuncName == "skip")
     {
       createRegularNode(currentNode, graph, line);
     }
@@ -168,6 +176,10 @@ CfgGraph Cfg::createCfg(istream& infile)
       }
       return graph;
     }
+    else if (currentFuncName == "")
+    {
+      continue; //an empty line
+    }
     else
     {
       cout << "unexpected line: " << line << endl;
@@ -175,6 +187,42 @@ CfgGraph Cfg::createCfg(istream& infile)
     }
   }
   return graph;
+}
+
+void Cfg::runProgram(const int& numberOfIterations)
+{
+  for (int iter = 0; iter < numberOfIterations; iter++)
+  {
+    for (set<struct CfgNode*>::iterator graphNodesIter = m_graph.m_nodes.begin();
+      graphNodesIter != m_graph.m_nodes.end();
+      graphNodesIter++)
+    {
+      CfgNode* currentNode = *graphNodesIter;
+      if (currentNode->type == e_regular)
+      {
+        State newState(currentNode->m_state);
+        newState.runFunction(currentNode->m_nextFunc);
+        for (set<struct CfgNode*>::iterator childIter = currentNode->m_children.begin();
+          childIter != currentNode->m_children.end();
+          childIter++)
+        {
+          CfgNode* currentChild = *childIter;
+          currentChild->m_state.join(newState);
+        }
+      }
+      else if ((currentNode->type == e_if) || (currentNode->type == e_while))
+      {
+        State newTrueState(currentNode->m_state);
+        newTrueState.runFunction(currentNode->m_nextFunc);
+        currentNode->m_trueChild->m_state.join(newTrueState);
+        State newFalseState(currentNode->m_state);
+        Function invertFunc = currentNode->m_nextFunc.invertFunction();
+        newFalseState.runFunction(invertFunc);
+        currentNode->m_falseChild->m_state.join(newFalseState);
+      }
+      // in case of e_noneType - nothing need to be done
+    }
+  }
 }
 
 bool Cfg::checkValidity()
@@ -185,7 +233,7 @@ bool Cfg::checkValidity()
      CfgNode* currentNode = *iter;
      if (!currentNode->m_state.checkValidity())
      {
-       cout << "check validity of the state failed: " << currentNode->m_nextFunc.m_line << endl;
+       cout << "check validity of the state failed: " << currentNode->m_nextFunc.getName() << endl;
        return false;
      }
    }

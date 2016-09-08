@@ -11,7 +11,7 @@ int main(int argc, char** argv)
   {
     istream infile(&fb);
     Cfg graph(infile);
-    /*graph.runProgram();
+    graph.runProgram();
     if (graph.checkValidity())
     {
       cout << "the program is valid" << endl;
@@ -19,7 +19,7 @@ int main(int argc, char** argv)
     else
     {
       cout << "the program can be not valid" << endl;
-    }*/
+    }
     graph.deleteCfg();
     fb.close();
   }

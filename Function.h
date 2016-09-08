@@ -15,11 +15,13 @@
 #define MINUS "-"
 
 #include <string>
+#include <sstream>
 
 using namespace std;
 
 enum FunctionName {
-	e_createNode,
+	e_noneFunc,
+  e_createNode,
 	e_setLeft,
 	e_setRight,
 	e_setValue,
@@ -34,9 +36,9 @@ enum FunctionName {
 class Function
 {
 public:
+  Function();
+  Function(const string& a_str);
 	Function(FunctionName a_name, const string& a_firstVar, const string& a_secondVar, int a_value);
-	Function(const string& a_str);
-	// Default DTOR
 
 	// Getters
 	FunctionName getName() const { return m_name; };
@@ -49,10 +51,19 @@ public:
 	Function invertFunction();
 
 private:
+  int stoi(string str) // implementation of the c++11 function
+  {
+    stringstream ss(str);
+    int N;
+    ss<<str;
+    ss>>N;
+    return N;
+  }
+
 	FunctionName m_name;
 	string m_firstVar;
 	string m_secondVar;
 	int m_value;
 };
 
-#endif _FUNCTION_H
+#endif
