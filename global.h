@@ -19,4 +19,20 @@ void error(const string& a_str, bool a_exit);
 void verbose(const string& a_str);
 void debug(const string& a_str);
 
+static string to_string(int num) // implementation of the c++11 function
+{
+  stringstream s;
+  s<<num;
+  return s.str();
+}
+
+static int stoi(string str) // implementation of the c++11 function
+{
+  stringstream ss(str);
+  int N;
+  ss<<str;
+  ss>>N;
+  return N;
+}
+
 #endif

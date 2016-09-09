@@ -54,15 +54,6 @@ public:
 	operator string() const;
 
 private:
-  static int stoi(string str) // implementation of the c++11 function
-  {
-    stringstream ss(str);
-    int N;
-    ss<<str;
-    ss>>N;
-    return N;
-  }
-
 	void debug(const string& a_message);
 
 	FunctionName m_name;

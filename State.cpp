@@ -149,7 +149,7 @@ void State::addNodeName(const string& a_name, TreeNode* a_node)
 
 void State::removeTrees(const NodeSet& a_nodeSet)
 {
-	for (NodeSetIter iter = a_nodeSet.begin(); iter != a_nodeSet.end(); iter++)
+	for (NodeSetConstIter iter = a_nodeSet.begin(); iter != a_nodeSet.end(); iter++)
 	{
 		removeTree(*iter);
 	}
