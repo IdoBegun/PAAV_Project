@@ -140,6 +140,28 @@ void State::addNodeName(const string& a_name, TreeNode* a_node)
 }
 
 
+void State::removeTrees(const NodeSet& a_nodeSet)
+{
+	for (NodeSetIter iter = a_nodeSet.begin(); iter != a_nodeSet.end(); iter++)
+	{
+		removeTree(*iter);
+	}
+}
+
+void State::removeTree(TreeNode* a_node)
+{
+	NodeSetIter iter = m_rootSet.find(a_node);
+	if (iter == m_rootSet.end())
+	{
+		return;
+	}
+
+	delete a_node;
+	m_rootSet.erase(a_node);
+	buildVariableMap();
+
+}
+
 void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots)
 {
 	NodeSet otherRootSet = a_other.getRootSet(); // Copy the entire set
@@ -156,7 +178,7 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 			error("State::divideTrees - We assume a root has a unique name1", true);
 		}
 
-		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != m_rootSet.end(); otherIter++)
+		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != otherRootSet.end(); otherIter++)
 		{
 			string otherRootName;
 			if (!((*otherIter)->getUniqueName(otherRootName)))
@@ -202,15 +224,16 @@ TreeNode* State::getUniqueRoot(const string& a_name)
 }
 
 
-const NodeSet& State::getVariableNodes(const string a_name)
+NodeSet* State::getVariableNodes(const string a_name)
 {
 	VariableMapIter iter = m_variableMap.find(a_name);
 	if (iter == m_variableMap.end())
 	{
-		error("State::getVariableNodes - name wasn't found", true);
+		error("State::getVariableNodes - name wasn't found", false);
+		return NULL;
 	}
 
-	return (iter->second);
+	return &(iter->second);
 }
 
 
@@ -257,8 +280,6 @@ void State::runFunction(const Function& a_func)
 		functionIncrement(a_func.getFirstVar(), -1 * a_func.getValue());
 		break;
 	}
-
-	debug("State::runFunction - After running function");
 }
 
 
@@ -292,11 +313,17 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 	TreeNode* childNode = getUniqueRoot(a_child);
 	if (childNode == NULL)
 	{
-		error("State::functionSetLeft - Can't set a node as a child if it already has a parent", true);
+		error("State::functionSetLeft - Can't set a node as a child if it already has a parent", false);
+		return;
 	}
 
-	const NodeSet& parentSet = getVariableNodes(a_parent);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_parent);
+	if (parentSet == NULL)
+	{
+		error("State::functionSetLeft - variable doesn't exist", false);
+		return;
+	}
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -332,8 +359,13 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 		return;
 	}
 
-	const NodeSet& parentSet = getVariableNodes(a_parent);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_parent);
+	if (parentSet == NULL)
+	{
+		error("State::functionSetRight - variable doesn't exist", false);
+		return;
+	}
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -363,8 +395,13 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 
 void State::functionSetValue(const string& a_name, int a_value)
 {
-	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_name);
+	if (parentSet == NULL)
+	{
+		error("State::functionSetValue - variable doesn't exist", false);
+		return;
+	}
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -380,8 +417,14 @@ void State::functionSetValue(const string& a_name, int a_value)
 
 void State::functionLessEqual(const string& a_name, int a_value)
 {
-	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_name);
+	if (parentSet == NULL)
+	{
+		error("State::functionLessEqual - variable doesn't exist", false);
+		return;
+	}
+	NodeSet removedRoots;
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -391,8 +434,8 @@ void State::functionLessEqual(const string& a_name, int a_value)
 
 		if ((*iter)->getMinValue() > a_value)
 		{
-			m_isTop = true;
-			return;
+			removedRoots.insert((*iter)->getRoot());
+			continue;
 		}
 
 		if ((*iter)->getMaxValue() > a_value)
@@ -400,13 +443,21 @@ void State::functionLessEqual(const string& a_name, int a_value)
 			(*iter)->setMaxValue(a_value);
 		}
 	}
+
+	removeTrees(removedRoots);
 }
 
 
 void State::functionGreaterEqual(const string& a_name, int a_value)
 {
-	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_name);
+	if (parentSet == NULL)
+	{
+		error("State::functionGreaterEqual - variable doesn't exist", false);
+		return;
+	}
+	NodeSet removedRoots;
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -416,8 +467,8 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 
 		if ((*iter)->getMaxValue() < a_value)
 		{
-			m_isTop = true;
-			return;
+			removedRoots.insert((*iter)->getRoot());
+			continue;
 		}
 
 		if ((*iter)->getMinValue() < a_value)
@@ -425,13 +476,20 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 			(*iter)->setMinValue(a_value);
 		}
 	}
+
+	removeTrees(removedRoots);
 }
 
 
 void State::functionIncrement(const string& a_name, int a_value)
 {
-	const NodeSet& parentSet = getVariableNodes(a_name);
-	for (NodeSetConstIter iter = parentSet.begin(); iter != parentSet.end(); iter++)
+	NodeSet* parentSet = getVariableNodes(a_name);
+	if (parentSet == NULL)
+	{
+		error("State::functionIncrement - variable doesn't exist", false);
+		return;
+	}
+	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
@@ -447,7 +505,18 @@ void State::functionIncrement(const string& a_name, int a_value)
 }
 
 
-void State::printState()
+void State::clearState()
+{
+	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+	{
+		delete (*iter);
+	}
+
+	m_variableMap.clear();
+}
+
+
+void State::printState() const
 {
 	cout << "State::printState - Printing State:" << endl;
 	if (m_isTop)
@@ -456,11 +525,12 @@ void State::printState()
 		return;
 	}
 
-	for (VariableMapIter iter = m_variableMap.begin(); iter != m_variableMap.end(); iter++)
+	cout << "Variables: ";
+	for (VariableMapConstIter iter = m_variableMap.begin(); iter != m_variableMap.end(); iter++)
 	{
 		cout << iter->first << ",";
 	}
-	cout << endl;
+	cout << endl << "Trees:" << endl;
 
 	for (NodeSetConstIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
 	{

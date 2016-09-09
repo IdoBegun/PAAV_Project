@@ -14,6 +14,7 @@ typedef NodeSet::iterator NodeSetIter;
 typedef NodeSet::const_iterator NodeSetConstIter;
 typedef map<string, NodeSet> VariableMap;
 typedef VariableMap::iterator VariableMapIter;
+typedef VariableMap::const_iterator VariableMapConstIter;
 typedef set<pair<TreeNode*, TreeNode*>> NodePairSet;
 typedef NodePairSet::iterator NodePairSetIter;
 
@@ -33,15 +34,17 @@ public:
 	void runFunction(const Function& a_func);
 	void join(const State& a_otherState);
 
-	void printState();
+	void printState() const;
 
 private:
 	void buildVariableMap();
 	void addNodeNames(TreeNode* a_node);
 	void addNodeName(const string& a_name, TreeNode* a_node);
+	void removeTrees(const NodeSet& a_nodeSet);
+	void removeTree(TreeNode* a_node);
 	void divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots);
 	TreeNode* getUniqueRoot(const string& a_name);
-	const NodeSet& getVariableNodes(const string a_name);
+	NodeSet* getVariableNodes(const string a_name);
 
 
 	void functionCreateNode(const string& a_name, int a_value);
@@ -51,6 +54,7 @@ private:
 	void functionLessEqual(const string& a_name, int a_value);
 	void functionGreaterEqual(const string& a_name, int a_value);
 	void functionIncrement(const string& a_name, int a_value);
+	void clearState();
 
 	void error(const string& a_message, bool a_exit);
 	void debug(const string& a_message);

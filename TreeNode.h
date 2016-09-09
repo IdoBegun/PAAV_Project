@@ -38,6 +38,8 @@ public:
 	bool checkValidity(int a_min, int a_max);
 	void join(TreeNode* a_other);
 
+	TreeNode* getRoot();
+
 	void printTree();
 
 private:

@@ -164,3 +164,16 @@ void TreeNode::debug(const string& a_message)
 #endif
 }
 
+
+TreeNode* TreeNode::getRoot()
+{
+	TreeNode* current = this;
+	TreeNode* parent = m_parent;
+	while (parent != NULL)
+	{
+		current = parent;
+		parent = current->getParent();
+	}
+
+	return current;
+}
