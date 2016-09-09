@@ -189,74 +189,56 @@ CfgGraph Cfg::createCfg(istream& infile)
   return graph;
 }
 
-void Cfg::runProgram(const int& numberOfIterations)
+void Cfg::runNodeProgram(CfgNode*& currentNode, set<CfgNode*>& visitedNodes)
 {
-  // loop for the nodes creation only
-  for (set<struct CfgNode*>::iterator graphNodesIter = m_graph.m_nodes.begin();
-      graphNodesIter != m_graph.m_nodes.end();
-      graphNodesIter++)
+  if (currentNode->type == e_regular)
   {
-    CfgNode* currentNode = *graphNodesIter;
-    if (currentNode->m_nextFunc.getName() == e_createNode)
+    State newState(currentNode->m_state);
+    newState.runFunction(currentNode->m_nextFunc);
+    for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
+      childIter != currentNode->m_children.end();
+      childIter++)
     {
-      State newState(currentNode->m_state);
-      newState.runFunction(currentNode->m_nextFunc);
-      for (set<struct CfgNode*>::iterator childIter = currentNode->m_children.begin();
-        childIter != currentNode->m_children.end();
-        childIter++)
-      {
-        CfgNode* currentChild = *childIter;
-        currentChild->m_state.join(newState);
-      }
+      CfgNode* currentChild = *childIter;
+      currentChild->m_state.join(newState);
     }
   }
+  else if ((currentNode->type == e_if) || (currentNode->type == e_while))
+  {
+    State newTrueState(currentNode->m_state);
+    newTrueState.runFunction(currentNode->m_nextFunc);
+    currentNode->m_trueChild->m_state.join(newTrueState);
+    State newFalseState(currentNode->m_state);
+    Function invertFunc = currentNode->m_nextFunc.invertFunction();
+    newFalseState.runFunction(invertFunc);
+    currentNode->m_falseChild->m_state.join(newFalseState);
+  }
+  for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
+      childIter != currentNode->m_children.end();
+      childIter++)
+  {
+    CfgNode* currentChild = *childIter;
+    if (visitedNodes.find(currentChild) == visitedNodes.end())
+    {
+      // we haven't visit this child already
+      visitedNodes.insert(currentChild);
+      runNodeProgram(currentChild, visitedNodes);
+    }
+  }
+}
 
-  // numberOfIterations in order to update the nodes
+void Cfg::runProgram(const int& numberOfIterations)
+{
   for (int iter = 0; iter < numberOfIterations; iter++)
   {
-    for (set<struct CfgNode*>::iterator graphNodesIter = m_graph.m_nodes.begin();
-      graphNodesIter != m_graph.m_nodes.end();
-      graphNodesIter++)
-    {
-      CfgNode* currentNode = *graphNodesIter;
-      if (currentNode->type == e_regular)
-      {
-        State newState(currentNode->m_state);
-        newState.runFunction(currentNode->m_nextFunc);
-        for (set<struct CfgNode*>::iterator childIter = currentNode->m_children.begin();
-          childIter != currentNode->m_children.end();
-          childIter++)
-        {
-          CfgNode* currentChild = *childIter;
-          currentChild->m_state.join(newState);
-        }
-      }
-      else if ((currentNode->type == e_if) || (currentNode->type == e_while))
-      {
-        State newTrueState(currentNode->m_state);
-        newTrueState.runFunction(currentNode->m_nextFunc);
-        currentNode->m_trueChild->m_state.join(newTrueState);
-        State newFalseState(currentNode->m_state);
-        Function invertFunc = currentNode->m_nextFunc.invertFunction();
-        newFalseState.runFunction(invertFunc);
-        currentNode->m_falseChild->m_state.join(newFalseState);
-      }
-      // in case of e_noneType - nothing need to be done
-    }
+    set<CfgNode*> visitedNodes;
+    CfgNode* currentNode = m_graph.m_root;
+    visitedNodes.insert(currentNode);
+    runNodeProgram(currentNode, visitedNodes);
   }
 }
 
 bool Cfg::checkValidity()
 {
-   for (set<struct CfgNode*>::iterator iter = m_graph.m_nodes.begin(); 
-    iter != m_graph.m_nodes.end(); iter++)
-   {
-     CfgNode* currentNode = *iter;
-     if (!currentNode->m_state.checkValidity())
-     {
-       cout << "check validity of the state failed: " << currentNode->m_nextFunc.getName() << endl;
-       return false;
-     }
-   }
-   return true;
+  return (m_graph.m_leaf->m_state.checkValidity());
 }
