@@ -191,6 +191,27 @@ CfgGraph Cfg::createCfg(istream& infile)
 
 void Cfg::runProgram(const int& numberOfIterations)
 {
+  // loop for the nodes creation only
+  for (set<struct CfgNode*>::iterator graphNodesIter = m_graph.m_nodes.begin();
+      graphNodesIter != m_graph.m_nodes.end();
+      graphNodesIter++)
+  {
+    CfgNode* currentNode = *graphNodesIter;
+    if (currentNode->m_nextFunc.getName() == e_createNode)
+    {
+      State newState(currentNode->m_state);
+      newState.runFunction(currentNode->m_nextFunc);
+      for (set<struct CfgNode*>::iterator childIter = currentNode->m_children.begin();
+        childIter != currentNode->m_children.end();
+        childIter++)
+      {
+        CfgNode* currentChild = *childIter;
+        currentChild->m_state.join(newState);
+      }
+    }
+  }
+
+  // numberOfIterations in order to update the nodes
   for (int iter = 0; iter < numberOfIterations; iter++)
   {
     for (set<struct CfgNode*>::iterator graphNodesIter = m_graph.m_nodes.begin();
