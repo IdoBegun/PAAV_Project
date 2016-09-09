@@ -17,7 +17,7 @@ enum CfgNodeType {
 
 typedef struct CfgNode
 {
-  CfgNode():m_state(), m_nextFunc(), m_children(), m_parents(), type(e_noneType), m_trueChild(NULL), m_falseChild(NULL) {}
+  CfgNode():m_state(), m_nextFunc(), m_children(), m_parents(), type(e_noneType), m_trueChild(NULL), m_falseChild(NULL), m_afterIfChild(NULL), m_ifParent(NULL) {}
   void addChild(CfgNode*& childToAdd);
   void removeChild(CfgNode*& childToRemove);
   State m_state;
@@ -27,6 +27,8 @@ typedef struct CfgNode
   CfgNodeType type;
   CfgNode* m_trueChild; //only relevant for if & while nodes
   CfgNode* m_falseChild; //only relevant for if & while nodes
+  CfgNode* m_afterIfChild; // only relevant for if node
+  CfgNode* m_ifParent; // only relevant for after if or if/else node
 }CfgNode;
 
 typedef struct CfgGraph
@@ -52,7 +54,7 @@ private:
   void createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode);
   void createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode);
   void updateLeafNode(CfgGraph& graph, CfgGraph& graphToUpdate, CfgNode*& currentNode);
-  void runNodeProgram(CfgNode*& currentNode, set<CfgNode*>& visitedNodes);
+  void runUntilNode(CfgNode*& currentNode, CfgNode*& untilNode, const int& numberOfIterations);
   CfgGraph m_graph;
 };
 

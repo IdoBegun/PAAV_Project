@@ -71,6 +71,12 @@ void Cfg::updateLeafNode(CfgGraph& graph, CfgGraph& graphToUpdate, CfgNode*& cur
       nodeToUpdate->m_falseChild = currentNode;
     }
   }
+  if (graphToUpdate.m_leaf->m_ifParent != NULL)
+  {
+    CfgNode* ifNode = graphToUpdate.m_leaf->m_ifParent;
+    ifNode->m_afterIfChild = currentNode;
+    currentNode->m_ifParent = ifNode;
+  }
   graphToUpdate.deleteNode(graphToUpdate.m_leaf);
   graph.m_nodes.insert(graphToUpdate.m_nodes.begin(), graphToUpdate.m_nodes.end());
 }
@@ -100,6 +106,8 @@ void Cfg::createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, is
   currentNode->m_trueChild = ifGraph.m_root;
   currentNode->addChild(ifGraph.m_leaf);
   currentNode->m_falseChild = ifGraph.m_leaf;
+  currentNode->m_afterIfChild = ifGraph.m_leaf;
+  ifGraph.m_leaf->m_ifParent = currentNode;
   ifNode = currentNode; // update in case of "else"
   currentNode = ifGraph.m_leaf; // ifGraph.leaf = nextNode
   graph.m_leaf = currentNode;
@@ -113,6 +121,8 @@ void Cfg::createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, 
   ifNode->addChild(elseGraph.m_root);
   ifNode->m_falseChild = elseGraph.m_root;
   updateLeafNode(graph, elseGraph, currentNode);
+  ifNode->m_afterIfChild = currentNode;
+  currentNode->m_ifParent = ifNode;
   // currentNode is the "empty node" for the next function
 }
 
@@ -189,53 +199,62 @@ CfgGraph Cfg::createCfg(istream& infile)
   return graph;
 }
 
-void Cfg::runNodeProgram(CfgNode*& currentNode, set<CfgNode*>& visitedNodes)
+void Cfg::runUntilNode(CfgNode*& currentNode, CfgNode*& untilNode, const int& numberOfIterations)
 {
-  if (currentNode->type == e_regular)
+  while (currentNode != untilNode)
   {
-    State newState(currentNode->m_state);
-    newState.runFunction(currentNode->m_nextFunc);
-    for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
-      childIter != currentNode->m_children.end();
-      childIter++)
+    if (currentNode->type == e_regular)
     {
-      CfgNode* currentChild = *childIter;
-      currentChild->m_state.join(newState);
+      State newState(currentNode->m_state);
+      newState.runFunction(currentNode->m_nextFunc);
+      for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
+        childIter != currentNode->m_children.end();
+        childIter++)
+      {
+        CfgNode* currentChild = *childIter;
+        currentChild->m_state.join(newState);
+      }
+      currentNode = *(currentNode->m_children.begin());
     }
-  }
-  else if ((currentNode->type == e_if) || (currentNode->type == e_while))
-  {
-    State newTrueState(currentNode->m_state);
-    newTrueState.runFunction(currentNode->m_nextFunc);
-    currentNode->m_trueChild->m_state.join(newTrueState);
-    State newFalseState(currentNode->m_state);
-    Function invertFunc = currentNode->m_nextFunc.invertFunction();
-    newFalseState.runFunction(invertFunc);
-    currentNode->m_falseChild->m_state.join(newFalseState);
-  }
-  for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
-      childIter != currentNode->m_children.end();
-      childIter++)
-  {
-    CfgNode* currentChild = *childIter;
-    if (visitedNodes.find(currentChild) == visitedNodes.end())
+    else if (currentNode->type == e_if)
     {
-      // we haven't visit this child already
-      visitedNodes.insert(currentChild);
-      runNodeProgram(currentChild, visitedNodes);
+      // go to the true direction
+      State newTrueState(currentNode->m_state);
+      newTrueState.runFunction(currentNode->m_nextFunc);
+      currentNode->m_trueChild->m_state.join(newTrueState);
+      runUntilNode(currentNode->m_trueChild, currentNode->m_afterIfChild, numberOfIterations);
+      // go to the false direction
+      State newFalseState(currentNode->m_state);
+      Function invertFunc = currentNode->m_nextFunc.invertFunction();
+      newFalseState.runFunction(invertFunc);
+      currentNode->m_falseChild->m_state.join(newFalseState);
+      runUntilNode(currentNode->m_falseChild, currentNode->m_afterIfChild, numberOfIterations);
+      // go to the node after the if/else condition
+      currentNode = currentNode->m_afterIfChild;
+    }
+    else if (currentNode->type == e_while)
+    {
+      // run the while loop numberOfIterations times
+      for (int iter = 0; iter < numberOfIterations; iter++)
+      {
+        State newTrueState(currentNode->m_state);
+        newTrueState.runFunction(currentNode->m_nextFunc);
+        currentNode->m_trueChild->m_state.join(newTrueState);
+        runUntilNode(currentNode->m_trueChild, currentNode, numberOfIterations);
+      }
+      // go to the false direction
+      State newFalseState(currentNode->m_state);
+      Function invertFunc = currentNode->m_nextFunc.invertFunction();
+      newFalseState.runFunction(invertFunc);
+      currentNode->m_falseChild->m_state.join(newFalseState);
+      currentNode = currentNode->m_falseChild;
     }
   }
 }
 
 void Cfg::runProgram(const int& numberOfIterations)
 {
-  for (int iter = 0; iter < numberOfIterations; iter++)
-  {
-    set<CfgNode*> visitedNodes;
-    CfgNode* currentNode = m_graph.m_root;
-    visitedNodes.insert(currentNode);
-    runNodeProgram(currentNode, visitedNodes);
-  }
+  runUntilNode(m_graph.m_root, m_graph.m_leaf, numberOfIterations);
 }
 
 bool Cfg::checkValidity()
