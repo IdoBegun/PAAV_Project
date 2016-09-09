@@ -1,6 +1,7 @@
 #ifndef _TREENODE_H
 #define _TREENODE_H
 
+#include <sstream>
 #include <string>
 #include <set>
 
@@ -40,6 +41,12 @@ public:
 	void printTree();
 
 private:
+  static string to_string(int num)
+  {
+    stringstream s;
+    s<<num;
+    return s.str();
+  }
 
 	void debug(const string& a_message);
 	NameSet m_nameSet;

@@ -53,7 +53,7 @@ public:
 	void printFunction();
 
 private:
-  int stoi(string str) // implementation of the c++11 function
+  static int stoi(string str) // implementation of the c++11 function
   {
     stringstream ss(str);
     int N;
