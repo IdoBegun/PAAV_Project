@@ -9,11 +9,11 @@ while(root < 11)
 {
 	if(root <= 5)
 	{
-		setValue(right+2)
+		setValue(right, right+2)
 	}
 	else
 	{
-		setValue(left-2)
+		setValue(left, left-2)
 	}
-	setValue(root+1)
+	setValue(root, root+1)
 }

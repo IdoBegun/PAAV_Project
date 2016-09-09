@@ -55,8 +55,9 @@ Function::Function(const string& a_str)
 		m_firstVar = funcElements[1];
 		m_secondVar = "";
 
-		string& exp = funcElements[1];
+		string& exp = funcElements[2];
 		size_t pos = exp.find(PLUS);
+		cout << "exp = " << exp << endl;
 
 		if (pos != string::npos)
 		{
@@ -180,7 +181,7 @@ Function Function::invertFunction()
   return (*this); // in case we remove the assert - get here
 }
 
-void Function::printFunction()
+void Function::printFunction() const
 {
 	cout << "Function::printFunction - Printing function:";
 	cout << m_name << "," << m_firstVar << "," << m_secondVar << "," << m_value << endl;

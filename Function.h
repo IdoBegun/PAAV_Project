@@ -50,7 +50,7 @@ public:
 	// Only relevant for conditional functions
 	Function invertFunction();
 
-	void printFunction();
+	void printFunction() const;
 
 private:
   static int stoi(string str) // implementation of the c++11 function
