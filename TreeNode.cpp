@@ -42,6 +42,8 @@ TreeNode::~TreeNode()
 
 bool TreeNode::checkValidity(int min, int max)
 {
+	debug("TreeNode::checkValidity - min = " + to_string(min) + " max = " + to_string(max));
+
 	if ((min > m_minValue) || (m_minValue > m_maxValue) || (m_maxValue > max))
 	{
 		cout << "error in node:"
@@ -152,3 +154,13 @@ void TreeNode::printTree()
 	}
 	cout << "]";
 }
+
+void TreeNode::debug(const string& a_message)
+{
+#if DEBUG>0
+	cout << a_message << endl;
+	printTree();
+	cout << endl;
+#endif
+}
+

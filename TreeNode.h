@@ -40,6 +40,8 @@ public:
 	void printTree();
 
 private:
+
+	void debug(const string& a_message);
 	NameSet m_nameSet;
 	TreeNode* m_parent;
 	TreeNode* m_leftChild;
