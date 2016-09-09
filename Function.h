@@ -50,6 +50,8 @@ public:
 	// Only relevant for conditional functions
 	Function invertFunction();
 
+	void printFunction();
+
 private:
   int stoi(string str) // implementation of the c++11 function
   {
@@ -59,6 +61,8 @@ private:
     ss>>N;
     return N;
   }
+
+	void debug(const string& a_message);
 
 	FunctionName m_name;
 	string m_firstVar;

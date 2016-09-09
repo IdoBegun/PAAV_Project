@@ -201,13 +201,27 @@ void Cfg::runProgram(const int& numberOfIterations)
       if (currentNode->type == e_regular)
       {
         State newState(currentNode->m_state);
+		//---
+		cout << "printing newState" << endl;
+		newState.printState();
+		cout << "printing function" << endl;
+		currentNode->m_nextFunc.printFunction();
+		//---
         newState.runFunction(currentNode->m_nextFunc);
+		//---
+		cout << "printing newState2" << endl;
+		newState.printState();
+		//---
         for (set<struct CfgNode*>::iterator childIter = currentNode->m_children.begin();
           childIter != currentNode->m_children.end();
           childIter++)
         {
           CfgNode* currentChild = *childIter;
           currentChild->m_state.join(newState);
+		  //---
+		  cout << "printing child state" << endl;
+		  currentChild->m_state.printState();
+		  //---
         }
       }
       else if ((currentNode->type == e_if) || (currentNode->type == e_while))

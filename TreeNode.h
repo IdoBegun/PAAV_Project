@@ -37,6 +37,8 @@ public:
 	bool checkValidity(int a_min, int a_max);
 	void join(TreeNode* a_other);
 
+	void printTree();
+
 private:
 	NameSet m_nameSet;
 	TreeNode* m_parent;

@@ -2,6 +2,8 @@
 #include <assert.h>
 #include "Function.h"
 #include "StringUtils.h"
+#include "global.h"
+
 
 Function::Function() :
 	m_name(e_noneFunc)
@@ -133,6 +135,8 @@ Function::Function(const string& a_str)
 			}
 		}
 	}
+
+	debug("Function::CTOR - building from" + a_str);
 }
 
 
@@ -174,4 +178,18 @@ Function Function::invertFunction()
     assert(false); // maybe just return (*this);	
 	}
   return (*this); // in case we remove the assert - get here
+}
+
+void Function::printFunction()
+{
+	cout << "Function::printFunction - Printing function:";
+	cout << m_name << "," << m_firstVar << "," << m_secondVar << "," << m_value << endl;
+}
+
+void Function::debug(const string& a_message)
+{
+#if DEBUG>0
+	cout << a_message << endl;
+	printFunction();
+#endif
 }

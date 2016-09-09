@@ -1,6 +1,7 @@
 #include <iostream>
 #include <assert.h>
 #include "State.h"
+#include "global.h"
 
 using namespace std;
 
@@ -24,10 +25,10 @@ State::State(const State& a_other)
 	for (NodeSetConstIter iter = otherRootSet.begin(); iter != otherRootSet.end(); iter++)
 	{
 		TreeNode* node = new TreeNode(*(*iter));
+		m_rootSet.insert(node);
 	}
 
 	buildVariableMap();
-
 }
 
 
@@ -152,8 +153,7 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-      cout << "State::divideTrees - We assume a root has a unique name1" << endl;
-      assert(false);
+			error("State::divideTrees - We assume a root has a unique name1", true);
 		}
 
 		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != m_rootSet.end(); otherIter++)
@@ -161,8 +161,7 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 			string otherRootName;
 			if (!((*otherIter)->getUniqueName(otherRootName)))
 			{
-        cout << "State::divideTrees - We assume a root has a unique name2" << endl;
-        assert(false);
+				error("State::divideTrees - We assume a root has a unique name2", true);
 			}
 
 			if (rootName == otherRootName)
@@ -190,8 +189,7 @@ TreeNode* State::getUniqueRoot(const string& a_name)
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-      cout << "State::getUniqueRoot - We assume a root has a unique name2" << endl;
-      assert(false);
+			error("State::getUniqueRoot - We assume a root has a unique name2", true);
 		}
 
 		if (a_name == rootName)
@@ -209,8 +207,7 @@ const NodeSet& State::getVariableNodes(const string a_name)
 	VariableMapIter iter = m_variableMap.find(a_name);
 	if (iter == m_variableMap.end())
 	{
-    cout << "State::getVariableNodes - name wasn't found" << endl;
-		assert(false);
+		error("State::getVariableNodes - name wasn't found", true);
 	}
 
 	return (iter->second);
@@ -223,6 +220,8 @@ void State::runFunction(const Function& a_func)
 	{
 		return;
 	}
+
+	debug("State::runFunction - Before running function");
 
 	FunctionName name = a_func.getName();
 	switch (name)
@@ -258,6 +257,8 @@ void State::runFunction(const Function& a_func)
 		functionIncrement(a_func.getFirstVar(), -1 * a_func.getValue());
 		break;
 	}
+
+	debug("State::runFunction - After running function");
 }
 
 
@@ -291,8 +292,7 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 	TreeNode* childNode = getUniqueRoot(a_child);
 	if (childNode == NULL)
 	{
-                cout << "State::functionSetLeft - Can't set a node as a child if it already has a parent" << endl;
-                assert(false);
+		error("State::functionSetLeft - Can't set a node as a child if it already has a parent", true);
 	}
 
 	const NodeSet& parentSet = getVariableNodes(a_parent);
@@ -300,8 +300,8 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 	{
 		if ((*iter) == NULL)
 		{
-			cout << "State::functionSetLeft - iterator is null" << endl;
-      assert(false); // maybe just continue?
+			error("State::functionSetLeft - iterator is null", false);
+			continue;
 		}
 
 		TreeNode* leftChild = (*iter)->getLeftChild();
@@ -328,8 +328,8 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 	TreeNode* childNode = getUniqueRoot(a_child);
 	if (childNode == NULL)
 	{
-    cout << "State::functionSetRight - Can't set a node as a child if it already has a parent" << endl;
-		assert(false);
+		error("State::functionSetRight - Can't set a node as a child if it already has a parent", false);
+		return;
 	}
 
 	const NodeSet& parentSet = getVariableNodes(a_parent);
@@ -337,8 +337,8 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 	{
 		if ((*iter) == NULL)
 		{
-      cout << "State::functionSetRight - iterator is null" << endl;
-      assert(false); // maybe just continue?
+			error("State::functionSetRight - iterator is null", false);
+			continue;
 		}
 
 		TreeNode* rightChild = (*iter)->getRightChild();
@@ -368,8 +368,8 @@ void State::functionSetValue(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-      cout << "State::functionSetValue - iterator is null" << endl;
-      assert(false); // maybe just continue
+			error("State::functionSetValue - iterator is null", false);
+			continue;
 		}
 
 		(*iter)->setMaxValue(a_value);
@@ -385,8 +385,8 @@ void State::functionLessEqual(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-      cout << "State::functionLessEqual - iterator is null" << endl;
-      assert(false); // maybe just continue
+			error("State::functionLessEqual - iterator is null", false);
+			continue;
 		}
 
 		if ((*iter)->getMinValue() > a_value)
@@ -410,8 +410,8 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-			cout << "State::functionGreaterEqual - iterator is null" << endl;
-      assert(false); // maybe just continue
+			error("State::functionGreaterEqual - iterator is null", false);
+			continue;
 		}
 
 		if ((*iter)->getMaxValue() < a_value)
@@ -435,8 +435,8 @@ void State::functionIncrement(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-			cout << "State::functionIncrement - iterator is null" << endl;
-      assert(false); // maybe just continue
+			error("State::functionIncrement - iterator is null", false);
+			continue;
 		}
 
 		int maxValue = (*iter)->getMaxValue();
@@ -444,4 +444,49 @@ void State::functionIncrement(const string& a_name, int a_value)
 		(*iter)->setMaxValue(maxValue + a_value);
 		(*iter)->setMinValue(minValue + a_value);
 	}
+}
+
+
+void State::printState()
+{
+	cout << "State::printState - Printing State:" << endl;
+	if (m_isTop)
+	{
+		cout << "Top!" << endl;
+		return;
+	}
+
+	for (VariableMapIter iter = m_variableMap.begin(); iter != m_variableMap.end(); iter++)
+	{
+		cout << iter->first << ",";
+	}
+	cout << endl;
+
+	for (NodeSetConstIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+	{
+		(*iter)->printTree();
+		cout << endl;
+	}
+}
+
+
+void State::error(const string& a_message, bool a_exit)
+{
+	cout << a_message << endl;
+#if DEBUG>0
+	printState();
+#endif
+	if (a_exit)
+	{
+		assert(false);
+	}
+}
+
+
+void State::debug(const string& a_message)
+{
+#if DEBUG>0
+	cout << a_message << endl;
+	printState();
+#endif
 }
