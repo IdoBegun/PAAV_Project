@@ -128,3 +128,27 @@ bool TreeNode::getUniqueName(string& a_name)
 	return false;
 }
 
+
+void TreeNode::printTree()
+{
+	cout << "[";
+	if (m_leftChild != NULL)
+	{
+		m_leftChild->printTree();
+	}
+	cout << "]";
+
+	for (NameSetConstIter iter = m_nameSet.begin(); iter != m_nameSet.end(); iter++)
+	{
+		cout << *iter << ",";
+	}
+
+	cout << m_minValue << "," << m_maxValue;
+
+	cout << "[";
+	if (m_rightChild != NULL)
+	{
+		m_rightChild->printTree();
+	}
+	cout << "]";
+}
