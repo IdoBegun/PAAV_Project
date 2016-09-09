@@ -57,7 +57,6 @@ Function::Function(const string& a_str)
 
 		string& exp = funcElements[2];
 		size_t pos = exp.find(PLUS);
-		cout << "exp = " << exp << endl;
 
 		if (pos != string::npos)
 		{
