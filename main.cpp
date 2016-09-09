@@ -1,11 +1,15 @@
-#include <iostream>     // std::ios, std::istream, std::cout
+#include <iostream>     // std::ios, std::istream, std::
+#include <sstream>
 #include <fstream>      // std::filebuf
 #include "Cfg.h"
+#include "global.h"
 
 int main(int argc, char** argv)
 {
   char* filePath = argv[1];
-  cout << filePath << endl;
+  stringstream ss;
+  ss << "Opening file: " << filePath;
+  log(ss.str());
   filebuf fb;
   if (fb.open (filePath,ios::in))
   {
@@ -14,18 +18,21 @@ int main(int argc, char** argv)
     graph.runProgram();
     if (graph.checkValidity())
     {
-      cout << "the program is valid" << endl;
+		log("The program is valid!");
     }
     else
     {
-      cout << "the program can be not valid" << endl;
+		log("The program can be invalid!");
     }
     graph.deleteCfg();
     fb.close();
   }
   else
   {
-    cout << "can't open the file: " << filePath << endl;
+	  ss.str("");
+	  ss.clear();
+	  ss << "Can't open the file: " << filePath;
+	  error(ss.str(), true);
   }
   return 0;
 }

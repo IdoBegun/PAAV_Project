@@ -1,5 +1,6 @@
 #include <iostream>
 #include "TreeNode.h"
+#include "global.h"
 
 TreeNode::TreeNode(string a_name, TreeNode* a_parent, TreeNode* a_leftChild, TreeNode* a_rightChild, int a_minValue, int a_maxValue) :
 	m_parent(a_parent), m_leftChild(a_leftChild), m_rightChild(a_rightChild), m_minValue(a_minValue), m_maxValue(a_maxValue)
@@ -10,6 +11,7 @@ TreeNode::TreeNode(string a_name, TreeNode* a_parent, TreeNode* a_leftChild, Tre
 
 TreeNode::TreeNode(const TreeNode& other)
 {
+	m_parent = NULL;
 	m_nameSet = other.getNameSet();
 	m_minValue = other.getMinValue();
 	m_maxValue = other.getMaxValue();
@@ -46,11 +48,13 @@ bool TreeNode::checkValidity(int min, int max)
 
 	if ((min > m_minValue) || (m_minValue > m_maxValue) || (m_maxValue > max))
 	{
-		cout << "error in node:"
+		stringstream ss;
+		ss << "error in node:"
 			<< "minValue=" << m_minValue
 			<< ", maxValue=" << m_maxValue
 			<< ", min=" << min
-			<< ", max=" << max << endl;
+			<< ", max=" << max;
+		error(ss.str(), false);
 		return false;
 	}
 	if ((m_leftChild != NULL) && (!m_leftChild->checkValidity(min, m_minValue)))
@@ -133,35 +137,7 @@ bool TreeNode::getUniqueName(string& a_name)
 
 void TreeNode::printTree()
 {
-	cout << "[";
-	if (m_leftChild != NULL)
-	{
-		m_leftChild->printTree();
-	}
-	cout << "]";
-
-	for (NameSetConstIter iter = m_nameSet.begin(); iter != m_nameSet.end(); iter++)
-	{
-		cout << *iter << ",";
-	}
-
-	cout << m_minValue << "," << m_maxValue;
-
-	cout << "[";
-	if (m_rightChild != NULL)
-	{
-		m_rightChild->printTree();
-	}
-	cout << "]";
-}
-
-void TreeNode::debug(const string& a_message)
-{
-#if DEBUG>0
-	cout << a_message << endl;
-	printTree();
-	cout << endl;
-#endif
+	cout << string(*this);
 }
 
 
@@ -177,3 +153,38 @@ TreeNode* TreeNode::getRoot()
 
 	return current;
 }
+
+
+TreeNode::operator string() const
+{
+	stringstream ss;
+	ss << "Node[";
+	if (m_leftChild != NULL)
+	{
+		ss << string(*m_leftChild);
+	}
+	else
+	{
+		ss << "NULL";
+	}
+
+	ss << ", Names=(";
+	for (NameSetConstIter iter = m_nameSet.begin(); iter != m_nameSet.end(); iter++)
+	{
+		ss << *iter << ",";
+	}
+	ss << "), min = " << to_string(m_minValue) << ", max = " << to_string(m_maxValue) << ",";
+
+	if (m_rightChild != NULL)
+	{
+		ss << string(*m_rightChild);
+	}
+	else
+	{
+		ss << "NULL";
+	}
+	ss << "]";
+
+	return ss.str();
+}
+

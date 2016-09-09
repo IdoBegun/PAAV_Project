@@ -4,9 +4,9 @@
 #include <string>
 #include <algorithm>
 #include <new>
-#include <assert.h> 
 #include <limits.h>
 #include "Cfg.h"
+#include "global.h"
 
 Cfg::Cfg(istream& infile)
 {
@@ -167,8 +167,7 @@ CfgGraph Cfg::createCfg(istream& infile)
     {
       if (ifNode==NULL)
       {
-        cout << "else without if" << endl;
-        assert(false);
+		  error("Cfg::createCfg - else without if", true);
       }
       createElseGraph(currentNode, graph, line, infile, ifNode);
     }
@@ -181,8 +180,7 @@ CfgGraph Cfg::createCfg(istream& infile)
     {
       if (!scopeStarted)
       {
-        cout << "scope has been closed but it hasn't been opened" << endl;
-        assert(false);
+		  error("Cfg::createCfg - scope has been closed but hasn't been opened", true);
       }
       return graph;
     }
@@ -192,8 +190,9 @@ CfgGraph Cfg::createCfg(istream& infile)
     }
     else
     {
-      cout << "unexpected line: " << line << endl;
-      assert(false);
+		stringstream ss;
+		ss << "Cfg::createCfg - unexpected line: " << line;
+		error(ss.str(), true);
     }
   }
   return graph;

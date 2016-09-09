@@ -1,13 +1,12 @@
-#include "StringUtils.h"
 #include <iostream>     // std::ios, std::istream, std::cout
 #include <fstream>      // std::filebuf
 #include <sstream>
 #include <string>
 #include <algorithm>
 #include <new>
-#include <assert.h> 
 #include <limits.h>
 #include <vector>
+#include "global.h"
 
 using namespace std;
 
@@ -34,4 +33,40 @@ vector<string> splitByDelim(string& a_str, char a_delim)
 	}
 
 	return result;
+}
+
+
+void log(const string& a_str)
+{
+	cout << " -I- " << a_str << endl;
+}
+
+
+void error(const string& a_str, bool a_exit)
+{
+	if (a_exit)
+	{
+		cout << " -E - Fatal error encountered!" << endl;
+	}
+	cout << " -E- " << a_str << endl;
+	if (a_exit)
+	{
+		exit(1);
+	}
+}
+
+
+void verbose(const string& a_str)
+{
+#if DEBUG_LEVEL>0
+	cout << " -V- " << a_str << endl;
+#endif
+}
+
+
+void debug(const string& a_str)
+{
+#if DEBUG_LEVEL>1
+	cout << " -D- " << a_str << endl;
+#endif
 }

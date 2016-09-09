@@ -51,6 +51,7 @@ public:
 	Function invertFunction();
 
 	void printFunction() const;
+	operator string() const;
 
 private:
   static int stoi(string str) // implementation of the c++11 function

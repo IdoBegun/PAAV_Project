@@ -1,5 +1,5 @@
 #include <iostream>
-#include <assert.h>
+#include <sstream>
 #include "State.h"
 #include "global.h"
 
@@ -12,6 +12,7 @@ State::State():m_isTop(false)
 
 State::State(const State& a_other)
 {
+	debug("State::CTOR - Copying state: " + string(a_other));
 	m_isTop = a_other.isTop();
 
 	if (m_isTop)
@@ -29,6 +30,7 @@ State::State(const State& a_other)
 	}
 
 	buildVariableMap();
+	debug("State::CTOR - Copied state: " + string(*this));
 }
 
 
@@ -71,6 +73,9 @@ void State::join(const State& a_otherState)
 	NodeSet myUniqueRoots;
 	NodeSet otherUniqueRoots;
 
+	debug("State::join - joining state: " + string(*this));
+	debug("State::join - with state: " + string(a_otherState));
+
 	divideTrees(a_otherState, commonRoots, myUniqueRoots, otherUniqueRoots);
 	m_rootSet.clear();
 
@@ -95,6 +100,8 @@ void State::join(const State& a_otherState)
 	}
 
 	buildVariableMap();
+
+	debug("State::join - joined state: " + string(*this));
 }
 
 
@@ -148,6 +155,7 @@ void State::removeTrees(const NodeSet& a_nodeSet)
 	}
 }
 
+
 void State::removeTree(TreeNode* a_node)
 {
 	NodeSetIter iter = m_rootSet.find(a_node);
@@ -162,6 +170,7 @@ void State::removeTree(TreeNode* a_node)
 
 }
 
+
 void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSet& a_myUniqueRoots, NodeSet& a_otherUniqueRoots)
 {
 	NodeSet otherRootSet = a_other.getRootSet(); // Copy the entire set
@@ -175,7 +184,7 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-			error("State::divideTrees - We assume a root has a unique name1", true);
+			error("State::divideTrees - Multiple roots (in this state) with the same name " + rootName + " exist! " + string(*this), true);
 		}
 
 		for (NodeSetIter otherIter = otherRootSet.begin(); otherIter != otherRootSet.end(); otherIter++)
@@ -183,7 +192,7 @@ void State::divideTrees(const State& a_other, NodePairSet& a_commonRoots, NodeSe
 			string otherRootName;
 			if (!((*otherIter)->getUniqueName(otherRootName)))
 			{
-				error("State::divideTrees - We assume a root has a unique name2", true);
+				error("State::divideTrees - Multiple roots (in joined state) with the same name " + otherRootName + " exist! " + string(a_other), true);
 			}
 
 			if (rootName == otherRootName)
@@ -211,7 +220,7 @@ TreeNode* State::getUniqueRoot(const string& a_name)
 		string rootName;
 		if (!((*iter)->getUniqueName(rootName)))
 		{
-			error("State::getUniqueRoot - We assume a root has a unique name2", true);
+			error("State::getUniqueRoot - Multiple roots with the same name " + a_name + " exist! " + string(*this), true);
 		}
 
 		if (a_name == rootName)
@@ -244,7 +253,8 @@ void State::runFunction(const Function& a_func)
 		return;
 	}
 
-	debug("State::runFunction - Before running function");
+	verbose("State::runFunction - Running function: " + string(a_func));
+	debug("State::runFunction - State before running function: " + string(*this));
 
 	FunctionName name = a_func.getName();
 	switch (name)
@@ -280,6 +290,7 @@ void State::runFunction(const Function& a_func)
 		functionIncrement(a_func.getFirstVar(), -1 * a_func.getValue());
 		break;
 	}
+	debug("State::runFunction - State after running function: " + string(*this));
 }
 
 
@@ -288,6 +299,7 @@ void State::functionCreateNode(const string& a_name, int a_value)
 	TreeNode* root = getUniqueRoot(a_name);
 	if (root != NULL)
 	{
+		verbose("State::functionCreateNode - A root called " + a_name + " already exists");
 		int minVal = root->getMinValue();
 		int maxVal = root->getMaxValue();
 		if (a_value < minVal)
@@ -302,6 +314,7 @@ void State::functionCreateNode(const string& a_name, int a_value)
 		return;
 	}
 
+	verbose("State::functionCreateNode - Creating a new node: " + a_name + " with value: " + to_string(a_value));
 	TreeNode* node = new TreeNode(a_name, NULL, NULL, NULL, a_value, a_value);
 	m_rootSet.insert(node);
 	addNodeName(a_name, node);
@@ -320,14 +333,14 @@ void State::functionSetLeft(const string& a_parent, const string& a_child)
 	NodeSet* parentSet = getVariableNodes(a_parent);
 	if (parentSet == NULL)
 	{
-		error("State::functionSetLeft - variable doesn't exist", false);
+		error("State::functionSetLeft - variable " + a_parent + " doesn't exist", false);
 		return;
 	}
 	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionSetLeft - iterator is null", false);
+			error("State::functionSetLeft - iterator for variable " + a_parent + " is NULL", false);
 			continue;
 		}
 
@@ -362,14 +375,14 @@ void State::functionSetRight(const string& a_parent, const string& a_child)
 	NodeSet* parentSet = getVariableNodes(a_parent);
 	if (parentSet == NULL)
 	{
-		error("State::functionSetRight - variable doesn't exist", false);
+		error("State::functionSetRight - variable " + a_parent + " doesn't exist", false);
 		return;
 	}
 	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionSetRight - iterator is null", false);
+			error("State::functionSetRight - iterator for variable " + a_parent + " is NULL", false);
 			continue;
 		}
 
@@ -398,14 +411,15 @@ void State::functionSetValue(const string& a_name, int a_value)
 	NodeSet* parentSet = getVariableNodes(a_name);
 	if (parentSet == NULL)
 	{
-		error("State::functionSetValue - variable doesn't exist", false);
+		stringstream ss;
+		error("State::functionSetValue - variable " + a_name + " doesn't exist", false);
 		return;
 	}
 	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionSetValue - iterator is null", false);
+			error("State::functionSetValue - iterator for variable " + a_name + " is NULL", false);
 			continue;
 		}
 
@@ -420,7 +434,7 @@ void State::functionLessEqual(const string& a_name, int a_value)
 	NodeSet* parentSet = getVariableNodes(a_name);
 	if (parentSet == NULL)
 	{
-		error("State::functionLessEqual - variable doesn't exist", false);
+		error("State::functionLessEqual - variable " + a_name + " doesn't exist", false);
 		return;
 	}
 	NodeSet removedRoots;
@@ -428,12 +442,15 @@ void State::functionLessEqual(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionLessEqual - iterator is null", false);
+			stringstream ss;
+			ss << "State::functionLessEqual - iterator for variable " << a_name << " is NULL";
+			error(ss.str(), false);
 			continue;
 		}
 
 		if ((*iter)->getMinValue() > a_value)
 		{
+			debug("State::functionLessEqual - Adding " + a_name + "'s root to removedRoots set");
 			removedRoots.insert((*iter)->getRoot());
 			continue;
 		}
@@ -444,6 +461,7 @@ void State::functionLessEqual(const string& a_name, int a_value)
 		}
 	}
 
+	debug("State::functionLessEqual - removing trees");
 	removeTrees(removedRoots);
 }
 
@@ -453,7 +471,7 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 	NodeSet* parentSet = getVariableNodes(a_name);
 	if (parentSet == NULL)
 	{
-		error("State::functionGreaterEqual - variable doesn't exist", false);
+		error("State::functionGreaterEqual - variable " + a_name + " doesn't exist" , false);
 		return;
 	}
 	NodeSet removedRoots;
@@ -461,12 +479,13 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionGreaterEqual - iterator is null", false);
+			error("State::functionGreaterEqual - iterator for variable " + a_name + " is NULL", false);
 			continue;
 		}
 
 		if ((*iter)->getMaxValue() < a_value)
 		{
+			debug("State::functionGreaterEqual - Adding " + a_name + "'s root to removedRoots set");
 			removedRoots.insert((*iter)->getRoot());
 			continue;
 		}
@@ -477,6 +496,7 @@ void State::functionGreaterEqual(const string& a_name, int a_value)
 		}
 	}
 
+	debug("State::functionGreaterEqual - removing trees");
 	removeTrees(removedRoots);
 }
 
@@ -486,14 +506,14 @@ void State::functionIncrement(const string& a_name, int a_value)
 	NodeSet* parentSet = getVariableNodes(a_name);
 	if (parentSet == NULL)
 	{
-		error("State::functionIncrement - variable doesn't exist", false);
+		error("State::functionIncrement - variable " + a_name + " doesn't exist", false);
 		return;
 	}
 	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)
 	{
 		if ((*iter) == NULL)
 		{
-			error("State::functionIncrement - iterator is null", false);
+			error("State::functionIncrement - iterator for variable " + a_name + " is NULL", false);
 			continue;
 		}
 
@@ -505,58 +525,43 @@ void State::functionIncrement(const string& a_name, int a_value)
 }
 
 
-void State::clearState()
-{
-	for (NodeSetIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
-	{
-		delete (*iter);
-	}
-
-	m_variableMap.clear();
-}
-
-
 void State::printState() const
 {
-	cout << "State::printState - Printing State:" << endl;
+	cout << string(*this);
+}
+
+
+State::operator string() const
+{
+	stringstream ss;
+
+	ss << "State: ";
 	if (m_isTop)
 	{
-		cout << "Top!" << endl;
-		return;
+		ss << "Top" << endl;
 	}
-
-	cout << "Variables: ";
-	for (VariableMapConstIter iter = m_variableMap.begin(); iter != m_variableMap.end(); iter++)
+	else
 	{
-		cout << iter->first << ",";
+		ss << endl << "\tVariables: ";
+		for (VariableMapConstIter iter = m_variableMap.begin(); iter != m_variableMap.end(); iter++)
+		{
+			ss << iter->first << ",";
+		}
+		ss << endl << "\tTrees:" << endl;
+
+		for (NodeSetConstIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
+		{
+			ss << "\t";
+			if ((*iter) == NULL)
+			{
+				ss << "NULL";
+			}
+			else
+			{
+				ss << string(*(*iter));
+			}
+			ss << endl;
+		}
 	}
-	cout << endl << "Trees:" << endl;
-
-	for (NodeSetConstIter iter = m_rootSet.begin(); iter != m_rootSet.end(); iter++)
-	{
-		(*iter)->printTree();
-		cout << endl;
-	}
-}
-
-
-void State::error(const string& a_message, bool a_exit)
-{
-	cout << a_message << endl;
-#if DEBUG>0
-	printState();
-#endif
-	if (a_exit)
-	{
-		assert(false);
-	}
-}
-
-
-void State::debug(const string& a_message)
-{
-#if DEBUG>0
-	cout << a_message << endl;
-	printState();
-#endif
+	return ss.str();
 }

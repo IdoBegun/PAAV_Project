@@ -1,7 +1,5 @@
 #include <iostream>
-#include <assert.h>
 #include "Function.h"
-#include "StringUtils.h"
 #include "global.h"
 
 
@@ -9,9 +7,11 @@ Function::Function() :
 	m_name(e_noneFunc)
 {}
 
+
 Function::Function(FunctionName a_name, const string& a_firstVar, const string& a_secondVar, int a_value):
 	m_name(a_name), m_firstVar(a_firstVar), m_secondVar(a_secondVar), m_value(a_value)
 {}
+
 
 Function::Function(const string& a_str)
 {
@@ -64,8 +64,7 @@ Function::Function(const string& a_str)
 			string var = m_firstVar = exp.substr(0, pos);
 			if (var != m_firstVar)
 			{
-        cout << "Function ctor - parsing problem1" << endl;
-        assert(false);
+				error("Function::CTOR - Variable increment is only supported when using the same variable", true);
 			}
 			m_value = stoi(exp.substr(pos + 1, string::npos));
 		}
@@ -78,8 +77,7 @@ Function::Function(const string& a_str)
 				string var = m_firstVar = exp.substr(0, pos);
 				if (var != m_firstVar)
 				{
-          cout << "Function ctor - parsing problem2" << endl;
-          assert(false);
+					error("Function::CTOR - Variable decrement is only supported when using the same variable", true);
 				}
 				m_value = stoi(exp.substr(pos + 1, string::npos));
 			}
@@ -159,8 +157,8 @@ Function Function::invertFunction()
 {
 	if (!isConditional())
 	{
-    cout << "Function::invertFunction - not conditional" << endl;
-    assert(false); // maybe just return (*this);
+
+		return (*this);
 	}
 
 	switch (m_name)
@@ -174,21 +172,69 @@ Function Function::invertFunction()
 	case(e_greaterEqual):
 		return Function(e_less, m_firstVar, m_secondVar, m_value);
 	default:
-    cout << "Function::invertFunction - got to default case - " << m_name << endl;
-    assert(false); // maybe just return (*this);	
+		error("Function::invertFunction - Unable to invert a non-conditional function", false);
+		return (*this);
 	}
-  return (*this); // in case we remove the assert - get here
 }
+
 
 void Function::printFunction() const
 {
-	cout << "Function::printFunction - Printing function:";
-	cout << m_name << "," << m_firstVar << "," << m_secondVar << "," << m_value << endl;
+	cout << string(*this);
 }
+
+
+Function::operator string() const
+{
+	stringstream ss;
+
+	ss << "Function: m_name = ";
+	switch (m_name)
+	{
+	case(e_createNode):
+		ss << CREATE_NODE;
+		break;
+	case(e_setLeft):
+		ss << SET_LEFT;
+		break;
+	case(e_setRight):
+		ss << SET_RIGHT;
+		break;
+	case(e_setValue):
+		ss << SET_VALUE;
+		break;
+	case(e_less):
+		ss << LESS;
+		break;
+	case(e_lessEqual):
+		ss << LESS_EQUAL;
+		break;
+	case(e_greater):
+		ss << GREATER;
+		break;
+	case(e_greaterEqual):
+		ss << GREATER_EQUAL;
+		break;
+	case(e_increment):
+		ss << PLUS;
+		break;
+	case(e_decrement):
+		ss << MINUS;
+		break;
+	default:
+		ss << "?";
+	}
+
+	ss << ", m_firstVar = " << m_firstVar << ", m_secondVar = " << m_secondVar << ", m_value = " << to_string(m_value) << endl;
+
+	return ss.str();
+
+}
+
 
 void Function::debug(const string& a_message)
 {
-#if DEBUG>0
+#if DEBUG_LEVEL>0
 	cout << a_message << endl;
 	printFunction();
 #endif

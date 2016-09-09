@@ -35,6 +35,7 @@ public:
 	void join(const State& a_otherState);
 
 	void printState() const;
+	operator string() const;
 
 private:
 	void buildVariableMap();
@@ -54,10 +55,6 @@ private:
 	void functionLessEqual(const string& a_name, int a_value);
 	void functionGreaterEqual(const string& a_name, int a_value);
 	void functionIncrement(const string& a_name, int a_value);
-	void clearState();
-
-	void error(const string& a_message, bool a_exit);
-	void debug(const string& a_message);
 
 	VariableMap m_variableMap;
 	NodeSet m_rootSet;

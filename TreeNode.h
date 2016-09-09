@@ -41,6 +41,7 @@ public:
 	TreeNode* getRoot();
 
 	void printTree();
+	operator string() const;
 
 private:
   static string to_string(int num)
@@ -50,7 +51,6 @@ private:
     return s.str();
   }
 
-	void debug(const string& a_message);
 	NameSet m_nameSet;
 	TreeNode* m_parent;
 	TreeNode* m_leftChild;
