@@ -52,6 +52,7 @@ private:
   void createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode);
   void createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode);
   void updateLeafNode(CfgGraph& graph, CfgGraph& graphToUpdate, CfgNode*& currentNode);
+  void runNodeProgram(CfgNode*& currentNode, set<CfgNode*>& visitedNodes);
   CfgGraph m_graph;
 };
 
