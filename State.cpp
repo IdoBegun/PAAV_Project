@@ -238,7 +238,7 @@ NodeSet* State::getVariableNodes(const string a_name)
 	VariableMapIter iter = m_variableMap.find(a_name);
 	if (iter == m_variableMap.end())
 	{
-		error("State::getVariableNodes - name wasn't found", false);
+		verbose("State::getVariableNodes - name wasn't found");
 		return NULL;
 	}
 
@@ -506,7 +506,7 @@ void State::functionIncrement(const string& a_name, int a_value)
 	NodeSet* parentSet = getVariableNodes(a_name);
 	if (parentSet == NULL)
 	{
-		error("State::functionIncrement - variable " + a_name + " doesn't exist", false);
+		verbose("State::functionIncrement - variable " + a_name + " doesn't exist");
 		return;
 	}
 	for (NodeSetConstIter iter = parentSet->begin(); iter != parentSet->end(); iter++)

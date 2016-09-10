@@ -134,7 +134,7 @@ Function::Function(const string& a_str)
 		}
 	}
 
-	debug("Function::CTOR - building from" + a_str);
+	debug("Function::CTOR - building from " + a_str);
 }
 
 

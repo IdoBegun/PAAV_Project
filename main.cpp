@@ -14,8 +14,11 @@ int main(int argc, char** argv)
   if (fb.open (filePath,ios::in))
   {
     istream infile(&fb);
+	log("Creating control flow graph...");
     Cfg graph(infile);
+	log("Computing program states...");
     graph.runProgram();
+	log("Checking program validity...");
     if (graph.checkValidity())
     {
 		log("The program is valid!");

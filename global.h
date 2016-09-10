@@ -19,6 +19,7 @@ void error(const string& a_str, bool a_exit);
 void verbose(const string& a_str);
 void debug(const string& a_str);
 
+#ifndef CPP11
 static string to_string(int num) // implementation of the c++11 function
 {
   stringstream s;
@@ -34,5 +35,5 @@ static int stoi(string str) // implementation of the c++11 function
   ss>>N;
   return N;
 }
-
+#endif
 #endif

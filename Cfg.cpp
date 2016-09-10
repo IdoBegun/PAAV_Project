@@ -44,6 +44,7 @@ void CfgGraph::deleteNode(CfgNode* nodeToDelete)
 
 void Cfg::createRegularNode(CfgNode*& currentNode, CfgGraph& graph, string& line)
 {
+	verbose("Cfg::createRegularNode - Creating regular node for line: " + line);
   currentNode->type = e_regular;
   currentNode->m_nextFunc = Function(line);
   CfgNode* nextNode = new CfgNode;
@@ -83,6 +84,7 @@ void Cfg::updateLeafNode(CfgGraph& graph, CfgGraph& graphToUpdate, CfgNode*& cur
 
 void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile)
 {
+	verbose("Cfg::createWhileGraph - Creating a loop node for line: " + line);
   currentNode->type = e_while;
   currentNode->m_nextFunc = Function(line);
   CfgGraph whileGraph = createCfg(infile);
@@ -99,6 +101,7 @@ void Cfg::createWhileGraph(CfgNode*& currentNode, CfgGraph& graph, string& line,
 
 void Cfg::createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode)
 {
+	verbose("Cfg::createIfGraph - Creating a conditional node for line: " + line);
   currentNode->type = e_if;
   currentNode->m_nextFunc = Function(line);
   CfgGraph ifGraph = createCfg(infile);
@@ -116,6 +119,7 @@ void Cfg::createIfGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, is
 
 void Cfg::createElseGraph(CfgNode*& currentNode, CfgGraph& graph, string& line, istream& infile, CfgNode*& ifNode)
 {
+	verbose("Cfg::createElseGraph - Creating a conditional node for line: " + line);
   ifNode->removeChild(currentNode);
   CfgGraph elseGraph = createCfg(infile);
   ifNode->addChild(elseGraph.m_root);
@@ -205,7 +209,9 @@ void Cfg::runUntilNode(CfgNode*& currentNode, CfgNode*& untilNode, const int& nu
     if (currentNode->type == e_regular)
     {
       State newState(currentNode->m_state);
+	  verbose("Cfg::runUntilNode - Running function " + string(currentNode->m_nextFunc) + " on state: " + string(newState));
       newState.runFunction(currentNode->m_nextFunc);
+	  verbose("Cfg::runUntilNode - New state is: " + string(newState));
       for (set<CfgNode*>::iterator childIter = currentNode->m_children.begin();
         childIter != currentNode->m_children.end();
         childIter++)
