@@ -61,7 +61,7 @@ Function::Function(const string& a_str)
 		if (pos != string::npos)
 		{
 			m_name = e_increment;
-			string var = m_firstVar = exp.substr(0, pos);
+			string var = exp.substr(0, pos);
 			if (var != m_firstVar)
 			{
 				error("Function::CTOR - Variable increment is only supported when using the same variable", true);
@@ -74,7 +74,7 @@ Function::Function(const string& a_str)
 			if (pos != string::npos)
 			{
 				m_name = e_decrement;
-				string var = m_firstVar = exp.substr(0, pos);
+				string var = exp.substr(0, pos);
 				if (var != m_firstVar)
 				{
 					error("Function::CTOR - Variable decrement is only supported when using the same variable", true);
