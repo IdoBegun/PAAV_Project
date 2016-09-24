@@ -1,0 +1,19 @@
+createNode(root,0)
+createNode(left,-1)
+createNode(right,1)
+
+setLeft(root,left)
+setRight(root,right)
+
+while(root < 11)
+{
+	if(root <= 5)
+	{
+		setValue(right,root+10)
+	}
+	else
+	{
+		setValue(left,root-10)
+	}
+	setValue(root,root+1)
+}
